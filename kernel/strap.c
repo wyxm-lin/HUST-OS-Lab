@@ -61,8 +61,12 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
       // dynamically increase application stack.
       // hint: first allocate a new physical page, and then, maps the new page to the
       // virtual address that causes the page fault.
-      panic( "You need to implement the operations that actually handle the page fault in lab2_3.\n" );
-
+      // panic( "You need to implement the operations that actually handle the page fault in lab2_3.\n" );
+      {
+        void* pa = alloc_page();
+        pte_t* pte = page_walk(current->pagetable, stval, 1);
+        *pte = PA2PTE(pa) | PTE_V | prot_to_type(PROT_WRITE | PROT_READ, 1);
+      }
       break;
     default:
       sprint("unknown page fault.\n");
@@ -91,7 +95,6 @@ void smode_trap_handler(void) {
   switch (cause) {
     case CAUSE_USER_ECALL:
       handle_syscall(current->trapframe);
-    
       break;
     case CAUSE_MTIMER_S_TRAP:
       handle_mtimer_trap();
