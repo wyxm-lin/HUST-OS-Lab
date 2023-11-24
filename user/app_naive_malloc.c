@@ -14,9 +14,8 @@ int main(void) {
   struct my_structure* s = (struct my_structure*)naive_malloc();
   s->c = 'a';
   s->n = 1;
-
   printu("s: %lx, {%c %d}\n", s, s->c, s->n);
-
+  
   naive_free(s);
   exit(0);
 }
