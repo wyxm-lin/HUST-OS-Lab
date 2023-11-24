@@ -71,28 +71,6 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
 }
 
 //
-// the page fault handler. added @lab2_3. parameters:
-// sepc: the pc when fault happens;
-// stval: the virtual address that causes pagefault when being accessed.
-//
-void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
-  sprint("handle_page_fault: %lx\n", stval);
-  switch (mcause) {
-    case CAUSE_STORE_PAGE_FAULT:
-      // TODO (lab2_3): implement the operations that solve the page fault to
-      // dynamically increase application stack.
-      // hint: first allocate a new physical page, and then, maps the new page to the
-      // virtual address that causes the page fault.
-      panic( "You need to implement the operations that actually handle the page fault in lab2_3.\n" );
-
-      break;
-    default:
-      sprint("unknown page fault.\n");
-      break;
-  }
-}
-
-//
 // kernel/smode_trap.S will pass control to smode_trap_handler, when a trap happens
 // in S-mode.
 //
