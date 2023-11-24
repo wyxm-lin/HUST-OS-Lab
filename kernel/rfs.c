@@ -649,8 +649,9 @@ int rfs_readdir(struct vinode *dir_vinode, struct dir *dir, int *offset) {
   // the method of returning is to popular proper members of "dir", more specifically,
   // dir->name and dir->inum.
   // note: DO NOT DELETE CODE BELOW PANIC.
-  panic("You need to implement the code for reading a directory entry of rfs in lab4_2.\n" );
-
+  // panic("You need to implement the code for reading a directory entry of rfs in lab4_2.\n" );
+  memcpy(dir->name, p_direntry->name, RFS_MAX_FILE_NAME_LEN);
+  dir->inum = p_direntry->inum;
   // DO NOT DELETE CODE BELOW.
   (*offset)++;
   return 0;
