@@ -49,3 +49,11 @@ int printu(const char* s, ...) {
 int exit(int code) {
   return do_user_call(SYS_user_exit, code, 0, 0, 0, 0, 0, 0); 
 }
+
+
+// TODO: work
+void print_backtrace(int x) {
+  for (int i = x; i >= 1; i --) {
+    printu("%d\n", i);
+  }
+}
