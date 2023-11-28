@@ -1,0 +1,14 @@
+// 反汇编
+riscv64-unknown-elf-objdump -d ../obj/app_print_backtrace > asm.txt
+// 反汇编(更详细)
+riscv64-unknown-elf-objdump -D ../obj/app_print_backtrace > asmfull.txt
+// 符号表
+riscv64-unknown-elf-objdump -t ../obj/app_print_backtrace > sym.txt
+// strtab节
+riscv64-unknown-elf-objdump -s --section .strtab ../obj/app_print_backtrace > strtab.txt
+// 所有内容
+riscv64-unknown-elf-objdump -s ../obj/app_print_backtrace > strtab.txt
+// 符号表
+riscv64-unknown-elf-readelf -s ../obj/app_print_backtrace > readelf_s.txt
+// 
+riscv64-unknown-elf-readelf -S ../obj/app_print_backtrace > readelf_S.txt

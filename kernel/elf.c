@@ -49,7 +49,8 @@ elf_status elf_init(elf_ctx *ctx, void *info) {
 
 //
 // load the elf segments to memory regions as we are in Bare mode in lab1
-//
+// 
+// ANNOTATE:加载程序段(好像是)
 elf_status elf_load(elf_ctx *ctx) {
   // elf_prog_header structure is defined in kernel/elf.h
   elf_prog_header ph_addr;
@@ -59,6 +60,9 @@ elf_status elf_load(elf_ctx *ctx) {
   for (i = 0, off = ctx->ehdr.phoff; i < ctx->ehdr.phnum; i++, off += sizeof(ph_addr)) {
     // read segment headers
     if (elf_fpread(ctx, (void *)&ph_addr, sizeof(ph_addr), off) != sizeof(ph_addr)) return EL_EIO;
+
+    // TODO:delete this line
+    sprint("lgm:ph_addr.vaddr is %0x\n", ph_addr.vaddr); // 就是f8的地址
 
     if (ph_addr.type != ELF_PROG_LOAD) continue;
     if (ph_addr.memsz < ph_addr.filesz) return EL_ERR;
@@ -113,6 +117,12 @@ void load_bincode_from_host_elf(process *p) {
 
   sprint("Application: %s\n", arg_bug_msg.argv[0]);
 
+  // TODO:work 
+  sprint("lgm:===============================application start===============================\n");
+  for (size_t i = 0; i < argc; i++) {
+    sprint("lgm:arg[%d]: %s\n", i, arg_bug_msg.argv[i]);
+  }
+
   //elf loading. elf_ctx is defined in kernel/elf.h, used to track the loading process.
   elf_ctx elfloader;
   // elf_info is defined above, used to tie the elf file and its corresponding process.
@@ -137,4 +147,7 @@ void load_bincode_from_host_elf(process *p) {
   spike_file_close( info.f );
 
   sprint("Application program entry point (virtual address): 0x%lx\n", p->trapframe->epc);
+  // TODO:work 
+  sprint("lgm:===============================application start end===============================\n");
+  sprint("lgm:the shstrndx is %hd \n", elfloader.ehdr.shstrndx);
 }
