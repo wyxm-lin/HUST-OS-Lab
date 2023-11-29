@@ -45,10 +45,11 @@ enum segment_type {
 // the VM regions mapped to a user process
 typedef struct mapped_region {
   uint64 va;       // mapped virtual address
-  uint32 npages;   // mapping_info is unused if npages == 0
+  uint32 npages;   // mapping_info is unused if npages == 0 // ANNOTATE: 页数(为0时表示未使用)
   uint32 seg_type; // segment type, one of the segment_types
 } mapped_region;
 
+// ANNOTATE: 堆管理器
 typedef struct process_heap_manager {
   // points to the last free page in our simple heap.
   uint64 heap_top;

@@ -23,12 +23,12 @@ void insert_to_ready_queue( process* proc ) {
   // ready queue is not empty
   process *p;
   // browse the ready queue to see if proc is already in-queue
-  for( p=ready_queue_head; p->queue_next!=NULL; p=p->queue_next )
+  for( p = ready_queue_head; p->queue_next != NULL; p = p->queue_next )
     if( p == proc ) return;  //already in queue
 
   // p points to the last element of the ready queue
-  if( p==proc ) return;
-  p->queue_next = proc;
+  if( p == proc ) return;
+  p->queue_next = proc; // ANNOTATE: 此时p已经指向队列的尾部了
   proc->status = READY;
   proc->queue_next = NULL;
 
@@ -42,23 +42,25 @@ void insert_to_ready_queue( process* proc ) {
 // ready_queue_insert), and then call schedule().
 //
 extern process procs[NPROC];
+
 void schedule() {
   if ( !ready_queue_head ){
     // by default, if there are no ready process, and all processes are in the status of
     // FREE and ZOMBIE, we should shutdown the emulated RISC-V machine.
     int should_shutdown = 1;
 
-    for( int i=0; i<NPROC; i++ )
+    for( int i = 0; i < NPROC; i++ )
       if( (procs[i].status != FREE) && (procs[i].status != ZOMBIE) ){
         should_shutdown = 0;
         sprint( "ready queue empty, but process %d is not in free/zombie state:%d\n", 
           i, procs[i].status );
       }
 
-    if( should_shutdown ){
+    if ( should_shutdown ){
       sprint( "no more ready processes, system shutdown now.\n" );
       shutdown( 0 );
-    }else{
+    }
+    else {
       panic( "Not handled: we should let system wait for unfinished processes.\n" );
     }
   }

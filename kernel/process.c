@@ -90,14 +90,15 @@ process* alloc_process() {
   // locate the first usable process structure
   int i;
 
-  for( i=0; i<NPROC; i++ )
+  for( i = 0; i < NPROC; i++ )
     if( procs[i].status == FREE ) break;
 
-  if( i>=NPROC ){
+  if( i >= NPROC ){
     panic( "cannot find any free process structure.\n" );
     return 0;
   }
 
+  // NOTE: 以下部分和lab2大致相同 有部分地方不是很理解
   // init proc[i]'s vm space
   procs[i].trapframe = (trapframe *)alloc_page();  //trapframe, used to save context
   memset(procs[i].trapframe, 0, sizeof(trapframe));
@@ -110,6 +111,7 @@ process* alloc_process() {
   uint64 user_stack = (uint64)alloc_page();       //phisical address of user stack bottom
   procs[i].trapframe->regs.sp = USER_STACK_TOP;  //virtual address of user stack top
 
+  // NOTE: 使用了mapped_info数组来记录每个segment的信息
   // allocates a page to record memory regions (segments)
   procs[i].mapped_info = (mapped_region*)alloc_page();
   memset( procs[i].mapped_info, 0, PGSIZE );
@@ -137,12 +139,12 @@ process* alloc_process() {
   procs[i].mapped_info[SYSTEM_SEGMENT].seg_type = SYSTEM_SEGMENT;
 
   sprint("in alloc_proc. user frame 0x%lx, user stack 0x%lx, user kstack 0x%lx \n",
-    procs[i].trapframe, procs[i].trapframe->regs.sp, procs[i].kstack);
+    procs[i].trapframe, procs[i].trapframe->regs.sp, procs[i].kstack); // ANNOTATE: 不理解
 
   // initialize the process's heap manager
-  procs[i].user_heap.heap_top = USER_FREE_ADDRESS_START;
+  procs[i].user_heap.heap_top = USER_FREE_ADDRESS_START; // ANNOTATE: 定义在memlayout.h中
   procs[i].user_heap.heap_bottom = USER_FREE_ADDRESS_START;
-  procs[i].user_heap.free_pages_count = 0;
+  procs[i].user_heap.free_pages_count = 0; // no free pages yet
 
   // map user heap in userspace
   procs[i].mapped_info[HEAP_SEGMENT].va = USER_FREE_ADDRESS_START;
@@ -179,7 +181,7 @@ int do_fork( process* parent)
 {
   sprint( "will fork a child from parent %d.\n", parent->pid );
   process* child = alloc_process();
-  for( int i=0; i<parent->total_mapped_region; i++ ){
+  for( int i = 0; i < parent->total_mapped_region; i++ ){ // ANNOTATE: 此处用的是 < 
     // browse parent's vm space, and copy its trapframe and data segments,
     // map its code segment.
     switch( parent->mapped_info[i].seg_type ){
@@ -241,7 +243,7 @@ int do_fork( process* parent)
         child->mapped_info[child->total_mapped_region].npages =
           parent->mapped_info[i].npages;
         child->mapped_info[child->total_mapped_region].seg_type = CODE_SEGMENT;
-        child->total_mapped_region++; // TODO: don't understand this line
+        child->total_mapped_region++; // ANNOTATE: 在line183中 child 被分配时， 其total_mapped_region已经被初始化为4
         break;
     }
   }

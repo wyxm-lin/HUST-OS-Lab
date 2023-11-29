@@ -70,8 +70,8 @@ int s_start(void) {
   sprint("Switch to user mode...\n");
   // the application code (elf) is first loaded into memory, and then put into execution
   // added @lab3_1
-  insert_to_ready_queue( load_user_program() );
-  schedule();
+  insert_to_ready_queue( load_user_program() ); // ANNOTATE: 将第一个进程加入就绪队列
+  schedule(); // ANNOTATE: 启动第一个进程
 
   // we should never reach here.
   return 0;
