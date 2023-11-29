@@ -26,10 +26,10 @@ void load_user_program(process *proc) {
   proc->trapframe->regs.sp = USER_STACK;
 
   // load_bincode_from_host_elf() is defined in kernel/elf.c
-  // FIXME: delete this line
+  // DONE: delete this line
   // sprint("lgm:kernel start to load bincode from host elf\n");
   load_bincode_from_host_elf(proc);
-  // FIXME: delete this line
+  // DONE: delete this line
   // sprint("lgm:kernel end to load bincode from host elf\n");
 }
 
@@ -38,7 +38,7 @@ void load_user_program(process *proc) {
 //
 int s_start(void) {
   sprint("Enter supervisor mode...\n");
-  // Note: we use direct (i.e., Bare mode) for memory mapping in lab1.
+  // DONE: we use direct (i.e., Bare mode) for memory mapping in lab1.
   // which means: Virtual Address = Physical Address
   // therefore, we need to set satp to be 0 for now. we will enable paging in lab2_x.
   // 

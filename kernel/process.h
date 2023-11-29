@@ -27,6 +27,7 @@ void switch_to(process*);
 
 extern process* current;
 
+// DONE:
 extern uint64 symtab_addr_global; // 符号表加载至内存的地址
 extern uint64 strtab_addr_global; // 字符串表加载至内存的地址
 extern uint64 symtab_size_global; // 符号表加载至内存的地址

@@ -9,7 +9,7 @@ trap_sec_start:
 # enters the Supervisor mode, the computer will continue to execute the following
 # function (smode_trap_vector) to actually handle the trap.
 #
-# NOTE: sscratch points to the trapframe of current process before entering
+# DONE: sscratch points to the trapframe of current process before entering
 # smode_trap_vector. It is done by reture_to_user function (defined below) when
 # scheduling a user-mode application to run.
 #

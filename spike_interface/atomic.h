@@ -6,7 +6,7 @@
 #define _RISCV_ATOMIC_H_
 
 // Currently, interrupts are always disabled in M-mode.
-// todo: for PKE, wo turn on irq in lab_1_3_timer, so wo have to implement these two functions.
+// DONE: for PKE, wo turn on irq in lab_1_3_timer, so wo have to implement these two functions.
 #define disable_irqsave() (0)
 #define enable_irqrestore(flags) ((void)(flags))
 

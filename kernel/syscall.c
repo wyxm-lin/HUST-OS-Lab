@@ -13,7 +13,7 @@
 
 #include "spike_interface/spike_utils.h"
 
-// NOTE:
+// DONE:
 #include "elf.h"
 
 //
@@ -34,7 +34,7 @@ ssize_t sys_user_exit(uint64 code) {
   shutdown(code);
 }
 
-// NOTE:地址的位宽(注意下)
+// DONE:地址的位宽(注意下)
 static int backtrace(uint32 addr) {
   // 寻找小于该addr的最大的符号表地址
   uint32 symtab_name = 0;
@@ -57,7 +57,7 @@ static int backtrace(uint32 addr) {
 }
 
 // DONE:work
-// TODO:此处仍然可以使用current变量
+// DONE:此处仍然可以使用current变量
 ssize_t sys_user_backtrace(int x) { 
   // 获取用户态的帧地址
   uint64 fp = current->trapframe->regs.s0; 

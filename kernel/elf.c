@@ -134,7 +134,7 @@ elf_status init_symtab_and_strtab(elf_ctx * ctx) {
   // 获取strtab和symtab的大小
   uint64 strtab_size = ((elf_shdr*)(dest + (strtab_id - 1) * sizeof(elf_shdr)))->size;
   uint64 symtab_size = ((elf_shdr*)(dest + (symtab_id - 1) * sizeof(elf_shdr)))->size;
-  // NOTE:delete this line
+  // DONE:delete this line
   // sprint("lgm:strtab_off is %0x\n", strtab_off);
   // sprint("lgm:symtab_off is %0x\n", symtab_off);
   elf_load_symtab(ctx, symtab_off, symtab_size);

@@ -54,7 +54,7 @@ void smode_trap_handler(void) {
   assert(current);
   // save user process counter.
   current->trapframe->epc = read_csr(sepc);
-  // TODO:delete this line
+  // DONE:delete this line
   // sprint("lgm:kernel start to handle trap\n");
   // sprint("lgm:sepc=%p stval=%p\n", read_csr(sepc), read_csr(stval));
 

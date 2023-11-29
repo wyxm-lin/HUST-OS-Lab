@@ -5,5 +5,5 @@
 int printu(const char *s, ...);
 int exit(int code);
 
-// TODO: work
+// DONE: work
 int print_backtrace(int x);

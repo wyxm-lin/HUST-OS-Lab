@@ -1,7 +1,7 @@
 /*
  * Utility functions for process management. 
  *
- * Note: in Lab1, only one process (i.e., our user application) exists. Therefore, 
+ * DONE: in Lab1, only one process (i.e., our user application) exists. Therefore, 
  * PKE OS at this stage will set "current" to the loaded user application, and also
  * switch to the old "current" process after trap handling.
  */
@@ -21,6 +21,8 @@ extern void return_to_user(trapframe*);
 
 // current points to the currently running user-mode application.
 process* current = NULL; // ANNOTATE:声明在process.h中的 extern process* current = NULL;
+
+// DONE:
 uint64 symtab_addr_global = 0; // 符号表加载至内存的地址
 uint64 strtab_addr_global = 0; // 字符串表加载至内存的地址
 uint64 symtab_size_global = 0; // 符号表加载至内存的地址

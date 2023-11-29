@@ -60,7 +60,7 @@ elf_status elf_load(elf_ctx *ctx);
 
 void load_bincode_from_host_elf(process *p);
 
-// TODO:work
+// DONE:work
 elf_status elf_load_symtab(elf_ctx * ctx, uint64 offset, uint64 size);
 
 elf_status elf_load_strtab(elf_ctx * ctx, uint64 offset, uint64 size);
@@ -94,4 +94,5 @@ extern uint64 symtab_addr_global; // 符号表加载至内存的地址
 extern uint64 strtab_addr_global; // 字符串表加载至内存的地址
 extern uint64 symtab_size_global; // 符号表加载至内存的地址
 extern uint64 strtab_size_global; // 字符串表加载至内存的地址
+
 #endif
