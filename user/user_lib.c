@@ -52,8 +52,9 @@ int exit(int code) {
 
 
 // TODO: work
-void print_backtrace(int x) {
-  for (int i = x; i >= 1; i --) {
-    printu("%d\n", i);
-  }
+int print_backtrace(int x) {
+  // for (int i = x; i >= 1; i --) {
+  //   printu("%d\n", i);
+  // }
+  return do_user_call(SYS_user_backtrace, x, 0, 0, 0, 0, 0, 0);
 }

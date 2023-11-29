@@ -17,6 +17,7 @@ trap_sec_start:
 .align 4
 smode_trap_vector:
     # swap a0 and sscratch, so that points a0 to the trapframe of current process
+    # ANNOTATE:csrrw a, b, c 将b写到a中，将c写到b中，下面的代码刚好是交换了a0和sscratch
     csrrw a0, sscratch, a0
 
     # save the context (user registers) of current process in its trapframe.
@@ -32,6 +33,7 @@ smode_trap_vector:
     sd t0, 72(a0)
 
     # use the "user kernel" stack (whose pointer stored in p->trapframe->kernel_sp)
+    # ANNOTATE:由此可见，a0是process->trapframe的地址
     ld sp, 248(a0)
 
     # load the address of smode_trap_handler() from p->trapframe->kernel_trap
@@ -49,6 +51,8 @@ smode_trap_vector:
 .globl return_to_user
 return_to_user:
     # [sscratch]=[a0], save a0 in sscratch, so sscratch points to a trapframe now.
+    # ANNOTATE:使用sscratch恢复用户态的栈指针
+    # ANNOTATE:csrw dst, src
     csrw sscratch, a0
 
     # let [t6]=[a0]

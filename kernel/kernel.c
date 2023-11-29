@@ -10,12 +10,13 @@
 #include "spike_interface/spike_utils.h"
 
 // process is a structure defined in kernel/process.h
-process user_app;
+process user_app; // ANNOTATE:用户程序
 
 //
 // load the elf, and construct a "process" (with only a trapframe).
 // load_bincode_from_host_elf is defined in elf.c
 //
+// ANNOTATE:加载用户程序
 void load_user_program(process *proc) {
   // USER_TRAP_FRAME is a physical address defined in kernel/config.h
   proc->trapframe = (trapframe *)USER_TRAP_FRAME;

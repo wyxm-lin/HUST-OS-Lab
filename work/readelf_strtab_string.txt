@@ -1,0 +1,20 @@
+
+String dump of section '.strtab':
+  [     1]  app_print_backtrace.c
+  [    17]  user_lib.c
+  [    22]  snprintf.c
+  [    2d]  vsnprintf
+  [    37]  f7
+  [    3a]  f5
+  [    3d]  print_backtrace
+  [    4d]  f3
+  [    50]  f2
+  [    53]  main
+  [    58]  do_user_call
+  [    65]  f8
+  [    68]  f4
+  [    6b]  f1
+  [    6e]  printu
+  [    75]  exit
+  [    7a]  f6
+
