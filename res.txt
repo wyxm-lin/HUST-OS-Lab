@@ -15,6 +15,7 @@ Enter supervisor mode...
 PKE kernel start 0x0000000080000000, PKE kernel end: 0x0000000080007000, PKE kernel size: 0x0000000000007000 .
 free physical memory address: [0x0000000080007000, 0x0000000087ffffff] 
 kernel memory manager is initializing ...
+lgm:enable alloc address from 80007000 to 88000000
 KERN_BASE 0x0000000080000000
 physical address of _etext is: 0x0000000080004000
 kernel page table is on 
@@ -23,6 +24,7 @@ user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000
 Application: obj/app_sum_sequence
 Application program entry point (virtual address): 0x00000000000100a2
 Switch to user mode...
+ans: 0x0000000000400000
 handle_page_fault: 000000007fffdff8
 handle_page_fault: 000000007fffcff8
 handle_page_fault: 000000007fffbff8

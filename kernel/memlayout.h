@@ -11,6 +11,9 @@
 // default stack size
 #define STACK_SIZE 4096
 
+// DONE:添加栈区大小
+#define MY_STACK_SIZE 4096 * 32
+
 // virtual address of stack top of user process
 #define USER_STACK_TOP 0x7ffff000
 

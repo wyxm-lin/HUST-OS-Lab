@@ -29,8 +29,8 @@ int main(void) {
 
   // SECOND, we use array out of bound to trigger pagefaults in an invalid address
   int *ans = (int *)naive_malloc();
-
-  printu("Summation of an arithmetic sequence from 0 to %ld is: %ld \n", n, sum_sequence(n+1, ans) );
+  printu("ans: %p\n", ans);
+  printu("Summation of an arithmetic sequence from 0 to %ld is: %ld \n", n, sum_sequence(n + 1, ans) );
 
   exit(0);
 }

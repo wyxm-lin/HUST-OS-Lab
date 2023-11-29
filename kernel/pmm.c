@@ -86,5 +86,6 @@ void pmm_init() {
 
   sprint("kernel memory manager is initializing ...\n");
   // create the list of free pages
-  create_freepage_list(free_mem_start_addr, free_mem_end_addr); // ANNOTATE:init空闲页面
+  create_freepage_list(free_mem_start_addr, free_mem_end_addr); // ANNOTATE:init空闲页面(注意:此处的是物理地址)
+  sprint("lgm:enable alloc address from %0x to %0x\n", free_mem_start_addr, free_mem_end_addr);
 }

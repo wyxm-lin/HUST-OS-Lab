@@ -12,6 +12,10 @@
 
 #include "spike_interface/spike_utils.h"
 
+
+// DONE:
+#include "memlayout.h"
+
 //
 // handling the syscalls. will call do_syscall() defined in kernel/syscall.c
 //
@@ -53,6 +57,7 @@ void handle_mtimer_trap() {
 // sepc: the pc when fault happens;
 // stval: the virtual address that causes pagefault when being accessed.
 //
+// DONE:修改了此处
 void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
   sprint("handle_page_fault: %lx\n", stval);
   switch (mcause) {
@@ -63,9 +68,33 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
       // virtual address that causes the page fault.
       // panic( "You need to implement the operations that actually handle the page fault in lab2_3.\n" );
       {
-        void* pa = alloc_page();
-        pte_t* pte = page_walk(current->pagetable, stval, 1);
-        *pte = PA2PTE(pa) | PTE_V | prot_to_type(PROT_WRITE | PROT_READ, 1);
+        // 合法的虚拟地址应该是当前栈帧的页号的下一个页或者还是本页(栈空间应该是连续分配的) && 在分配的栈区内(在memlayout.h中 重新定义了栈区最多为32个页)
+        int flag = 0;
+        if (stval <= USER_STACK_TOP && stval > USER_STACK_TOP - MY_STACK_SIZE) {
+          uint64 sp = current->trapframe->regs.sp;
+          uint64 sp_page = sp >> PGSHIFT;
+          uint64 stval_page = stval >> PGSHIFT;
+          if (sp_page == stval_page || sp_page - 1 == stval_page) {
+            flag = 1;
+          }
+        }
+
+        // sprint("lgm:flag:%d\n", flag);
+        if (flag) {
+          void* pa = alloc_page();
+          pte_t* pte = page_walk(current->pagetable, stval, 1);
+          *pte = PA2PTE(pa) | PTE_V | prot_to_type(PROT_WRITE | PROT_READ, 1);
+        }
+        else {
+          /*
+            this address is not available!
+            System is shutting down with exit code -1.
+            */
+          sprint("this address is not available!\n");
+          // panic("System is shutting down with exit code -1.\n");
+          shutdown(-1);
+        }
+        
       }
       break;
     default:

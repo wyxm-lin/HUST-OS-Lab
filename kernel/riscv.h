@@ -188,7 +188,7 @@ static inline void flush_tlb(void) { asm volatile("sfence.vma zero, zero"); }
 
 // use riscv's sv39 page table scheme.
 #define SATP_SV39 (8L << 60)
-#define MAKE_SATP(pagetable) (SATP_SV39 | (((uint64)pagetable) >> 12))
+#define MAKE_SATP(pagetable) (SATP_SV39 | (((uint64)pagetable) >> 12)) //  
 
 #define PTE_V (1L << 0)  // valid
 #define PTE_R (1L << 1)  // readable
