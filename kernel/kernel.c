@@ -27,10 +27,10 @@ void load_user_program(process *proc) {
 
   // load_bincode_from_host_elf() is defined in kernel/elf.c
   // FIXME: delete this line
-  sprint("lgm:kernel start to load bincode from host elf\n");
+  // sprint("lgm:kernel start to load bincode from host elf\n");
   load_bincode_from_host_elf(proc);
   // FIXME: delete this line
-  sprint("lgm:kernel end to load bincode from host elf\n");
+  // sprint("lgm:kernel end to load bincode from host elf\n");
 }
 
 //

@@ -13,23 +13,15 @@ In m_start, hartid:0
 HTIF is available!
 (Emulated) memory size: 2048 MB
 Enter supervisor mode...
-lgm:kernel start to load bincode from host elf
 Application: obj/app_print_backtrace
-lgm:===============================application start===============================
-lgm:arg[0]: obj/app_print_backtrace
-lgm:ph_addr.vaddr is 81000000
-Application program entry point (virtual address): 0x00000000810000a2
-lgm:===============================application start end===============================
-lgm:the shstrndx is 17 
-lgm:kernel end to load bincode from host elf
 Switch to user mode...
 back trace the user app in the following:
-7
-6
-5
-4
-3
-2
-1
+f8
+f7
+f6
+f5
+f4
+f3
+f2
 User exit with code:0.
 System is shutting down with exit code 0.

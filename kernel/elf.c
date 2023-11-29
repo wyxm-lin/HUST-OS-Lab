@@ -50,7 +50,7 @@ elf_status elf_init(elf_ctx *ctx, void *info) {
 //
 // load the elf segments to memory regions as we are in Bare mode in lab1
 // 
-// ANNOTATE:加载程序段(好像是)
+// ANNOTATE:加载程序段
 elf_status elf_load(elf_ctx *ctx) {
   // elf_prog_header structure is defined in kernel/elf.h
   elf_prog_header ph_addr;
@@ -59,10 +59,7 @@ elf_status elf_load(elf_ctx *ctx) {
   // traverse the elf program segment headers
   for (i = 0, off = ctx->ehdr.phoff; i < ctx->ehdr.phnum; i++, off += sizeof(ph_addr)) {
     // read segment headers
-    if (elf_fpread(ctx, (void *)&ph_addr, sizeof(ph_addr), off) != sizeof(ph_addr)) return EL_EIO;
-
-    // TODO:delete this line
-    sprint("lgm:ph_addr.vaddr is %0x\n", ph_addr.vaddr); // 就是f8的地址
+    if (elf_fpread(ctx, (void *)&ph_addr, sizeof(ph_addr), off) != sizeof(ph_addr)) return EL_EIO; // ANNOTATE:此处读取的是elf文件中的程序段头(可以初始化ph_addr)
 
     if (ph_addr.type != ELF_PROG_LOAD) continue;
     if (ph_addr.memsz < ph_addr.filesz) return EL_ERR;
@@ -76,6 +73,72 @@ elf_status elf_load(elf_ctx *ctx) {
       return EL_EIO;
   }
 
+  return EL_OK;
+}
+
+// DONE:work
+// 加载符号表
+elf_status elf_load_symtab(elf_ctx * ctx, uint64 offset, uint64 size) {
+  symtab_addr_global = (uint64)(&ctx->ehdr) + offset;
+  symtab_size_global = size;
+  void *dest = elf_alloc_mb(ctx, symtab_addr_global, symtab_addr_global, size);
+  if (elf_fpread(ctx, dest, size, offset) != size)
+    return EL_EIO;
+  // char* data = (char*)symtab_addr_global;
+  // for (int i = 0; i < size; ) {
+  //   symtab_entry* entry = (symtab_entry*)(data + i);
+  //   sprint("lgm:%0x, %0x, %0x, %0x, %0x, %0x\n", entry->name, entry->info, entry->other, entry->shndx, entry->value, entry->size);
+  //   i += 24;
+  // }
+  // sprint("\n");
+  return EL_OK;
+}
+
+// DONE:
+// 加载strtab
+elf_status elf_load_strtab(elf_ctx * ctx, uint64 offset, uint64 size) {
+  strtab_addr_global = (uint64)(&ctx->ehdr) + offset;
+  strtab_size_global = size;
+  // sprint("lgm:strtab_start is %0x\n", strtab_addr_global);
+  void *dest = elf_alloc_mb(ctx, strtab_addr_global, strtab_addr_global, size);
+  // sprint("here no wrong\n");
+  if (elf_fpread(ctx, dest, size, offset) != size)
+    return EL_EIO;
+  // char* data = (char*)strtab_addr_global;
+  // for (int i = 0; i < size; i++) {
+  //   sprint("%c", *(data + i));
+  // }
+  // sprint("\n");
+  return EL_OK;
+}
+
+// DONE:work
+elf_status init_symtab_and_strtab(elf_ctx * ctx) {
+  // 获取节头表地址
+  uint64 shdr_start = ctx->ehdr.shoff;
+  // 计算整个节头表的大小
+  uint64 shdr_all_size = ctx->ehdr.shentsize * ctx->ehdr.shnum;
+  // 从elf文件中读取节头表
+  uint64 st_start = (uint64)(&ctx->ehdr) + shdr_start;
+  void *dest = elf_alloc_mb(ctx, st_start, st_start, shdr_all_size);
+  if (elf_fpread(ctx, dest, shdr_all_size, shdr_start) != shdr_all_size) {
+    // sprint("lgm:fail to read shdr\n");
+    return EL_EIO;
+  }
+  // 获取strtab和symtab_id在节头表的序号
+  uint64 strtab_id = ctx->ehdr.shstrndx;
+  uint64 symtab_id = strtab_id - 1; 
+  // 获取strtab和symtab的偏移
+  uint64 strtab_off = ((elf_shdr*)(dest + (strtab_id - 1) * sizeof(elf_shdr)))->offset;
+  uint64 symtab_off = ((elf_shdr*)(dest + (symtab_id - 1) * sizeof(elf_shdr)))->offset;
+  // 获取strtab和symtab的大小
+  uint64 strtab_size = ((elf_shdr*)(dest + (strtab_id - 1) * sizeof(elf_shdr)))->size;
+  uint64 symtab_size = ((elf_shdr*)(dest + (symtab_id - 1) * sizeof(elf_shdr)))->size;
+  // NOTE:delete this line
+  // sprint("lgm:strtab_off is %0x\n", strtab_off);
+  // sprint("lgm:symtab_off is %0x\n", symtab_off);
+  elf_load_symtab(ctx, symtab_off, symtab_size);
+  elf_load_strtab(ctx, strtab_off, strtab_size);
   return EL_OK;
 }
 
@@ -117,11 +180,6 @@ void load_bincode_from_host_elf(process *p) {
 
   sprint("Application: %s\n", arg_bug_msg.argv[0]);
 
-  // TODO:work 
-  sprint("lgm:===============================application start===============================\n");
-  for (size_t i = 0; i < argc; i++) {
-    sprint("lgm:arg[%d]: %s\n", i, arg_bug_msg.argv[i]);
-  }
 
   //elf loading. elf_ctx is defined in kernel/elf.h, used to track the loading process.
   elf_ctx elfloader;
@@ -140,14 +198,14 @@ void load_bincode_from_host_elf(process *p) {
   // load elf. elf_load() is defined above.
   if (elf_load(&elfloader) != EL_OK) panic("Fail on loading elf.\n");
 
+  // DONE:work
+  if (init_symtab_and_strtab(&elfloader) != EL_OK) panic("Fail on loading symtab.\n");
+
   // entry (virtual, also physical in lab1_x) address
   p->trapframe->epc = elfloader.ehdr.entry;
 
   // close the host spike file
   spike_file_close( info.f );
 
-  sprint("Application program entry point (virtual address): 0x%lx\n", p->trapframe->epc);
-  // TODO:work 
-  sprint("lgm:===============================application start end===============================\n");
-  sprint("lgm:the shstrndx is %hd \n", elfloader.ehdr.shstrndx);
+  // sprint("Application program entry point (virtual address): 0x%lx\n", p->trapframe->epc);
 }

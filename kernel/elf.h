@@ -60,4 +60,38 @@ elf_status elf_load(elf_ctx *ctx);
 
 void load_bincode_from_host_elf(process *p);
 
+// TODO:work
+elf_status elf_load_symtab(elf_ctx * ctx, uint64 offset, uint64 size);
+
+elf_status elf_load_strtab(elf_ctx * ctx, uint64 offset, uint64 size);
+
+typedef struct symtab_entry {
+  uint32 name;  // strtab的索引
+  uint8 info;
+  uint8 other;
+  uint16 shndx;
+  uint32 value; // 地址
+  uint32 size;
+}symtab_entry;
+
+// 节头表结构体
+typedef struct elf_shdr {
+  uint32 name; // 节头表的索引
+  uint32 type; // 类型
+  uint32 flags; 
+  uint64 addr; 
+  uint64 offset; // 偏移量
+  uint64 size;
+  uint32 link;
+  uint32 info;
+  uint64 addralign;
+  uint64 entsize;
+}elf_shdr;
+
+elf_status init_symtab_and_strtab(elf_ctx * ctx);
+
+extern uint64 symtab_addr_global; // 符号表加载至内存的地址
+extern uint64 strtab_addr_global; // 字符串表加载至内存的地址
+extern uint64 symtab_size_global; // 符号表加载至内存的地址
+extern uint64 strtab_size_global; // 字符串表加载至内存的地址
 #endif
