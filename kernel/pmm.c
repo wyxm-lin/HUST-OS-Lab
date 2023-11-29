@@ -41,7 +41,7 @@ void free_page(void *pa) {
 
   // insert a physical page to g_free_mem_list
   list_node *n = (list_node *)pa;
-  n->next = g_free_mem_list.next;
+  n->next = g_free_mem_list.next; // ANNOTATE:使用头插法
   g_free_mem_list.next = n;
 }
 
@@ -49,6 +49,7 @@ void free_page(void *pa) {
 // takes the first free page from g_free_mem_list, and returns (allocates) it.
 // Allocates only ONE page!
 //
+// ANNOTATE:分配一个物理页
 void *alloc_page(void) {
   list_node *n = g_free_mem_list.next;
   if (n) g_free_mem_list.next = n->next;
@@ -62,19 +63,20 @@ void *alloc_page(void) {
 //
 void pmm_init() {
   // start of kernel program segment
-  uint64 g_kernel_start = KERN_BASE;
-  uint64 g_kernel_end = (uint64)&_end;
+  uint64 g_kernel_start = KERN_BASE; // ANNOTATE:定义在memlayout.h文件中
+  uint64 g_kernel_end = (uint64)&_end; // ANNOTATE:定义在kernel/kernel.lds文件中 其中_end是链接脚本中定义的符号(line 10)
 
   uint64 pke_kernel_size = g_kernel_end - g_kernel_start;
   sprint("PKE kernel start 0x%lx, PKE kernel end: 0x%lx, PKE kernel size: 0x%lx .\n",
     g_kernel_start, g_kernel_end, pke_kernel_size);
 
   // free memory starts from the end of PKE kernel and must be page-aligined
-  free_mem_start_addr = ROUNDUP(g_kernel_end , PGSIZE);
+  free_mem_start_addr = ROUNDUP(g_kernel_end , PGSIZE); // ANNOTATE:意指从PKE kernel结束的地方开始
 
   // recompute g_mem_size to limit the physical memory space that our riscv-pke kernel
   // needs to manage
-  g_mem_size = MIN(PKE_MAX_ALLOWABLE_RAM, g_mem_size);
+  g_mem_size = MIN(PKE_MAX_ALLOWABLE_RAM, g_mem_size); // ANNOTATE:extern uint64 g_mem_size;定义在spike_interface/spike_memory.c文件中
+                                                       // ANNOTATE:PKE_MAX_ALLOWABLE_RAM定义在config.h文件中
   if( g_mem_size < pke_kernel_size )
     panic( "Error when recomputing physical memory size (g_mem_size).\n" );
 
@@ -84,5 +86,5 @@ void pmm_init() {
 
   sprint("kernel memory manager is initializing ...\n");
   // create the list of free pages
-  create_freepage_list(free_mem_start_addr, free_mem_end_addr);
+  create_freepage_list(free_mem_start_addr, free_mem_end_addr); // ANNOTATE:init空闲页面
 }

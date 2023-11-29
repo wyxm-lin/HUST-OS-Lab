@@ -38,7 +38,7 @@ uint64 prot_to_type(int prot, int user) {
   if (prot & PROT_READ) perm |= PTE_R | PTE_A;
   if (prot & PROT_WRITE) perm |= PTE_W | PTE_D;
   if (prot & PROT_EXEC) perm |= PTE_X | PTE_A;
-  if (perm == 0) perm = PTE_R;
+  if (perm == 0) perm = PTE_R; 
   if (user) perm |= PTE_U;
   return perm;
 }
@@ -47,6 +47,7 @@ uint64 prot_to_type(int prot, int user) {
 // traverse the page table (starting from page_dir) to find the corresponding pte of va.
 // returns: PTE (page table entry) pointing to va.
 //
+// ANNOTATE:alloc为1 表示允许分配，为0 表示不允许分配
 pte_t *page_walk(pagetable_t page_dir, uint64 va, int alloc) {
   if (va >= MAXVA) panic("page_walk");
 
@@ -56,6 +57,7 @@ pte_t *page_walk(pagetable_t page_dir, uint64 va, int alloc) {
   // traverse from page directory to page table.
   // as we use risc-v sv39 paging scheme, there will be 3 layers: page dir,
   // page medium dir, and page table.
+  // ANNOTATE:从第一层页表开始遍历
   for (int level = 2; level > 0; level--) {
     // macro "PX" gets the PTE index in page table of current level
     // "pte" points to the entry of current level
@@ -68,7 +70,7 @@ pte_t *page_walk(pagetable_t page_dir, uint64 va, int alloc) {
       pt = (pagetable_t)PTE2PA(*pte);
     } else { //PTE invalid (not exist).
       // allocate a page (to be the new pagetable), if alloc == 1
-      if( alloc && ((pt = (pte_t *)alloc_page(1)) != 0) ){
+      if( alloc && ((pt = (pte_t *)alloc_page(1)) != 0) ){ // ANNOTATE:alloc_page(1)为什么有参数
         memset(pt, 0, PGSIZE);
         // writes the physical address of newly allocated page to pte, to establish the
         // page table tree.
@@ -89,7 +91,7 @@ uint64 lookup_pa(pagetable_t pagetable, uint64 va) {
   pte_t *pte;
   uint64 pa;
 
-  if (va >= MAXVA) return 0;
+  if (va >= MAXVA) return 0; // ANNOTATE:MAXVA定义在riscv.h中
 
   pte = page_walk(pagetable, va, 0);
   if (pte == 0 || (*pte & PTE_V) == 0 || ((*pte & PTE_R) == 0 && (*pte & PTE_W) == 0))
@@ -129,7 +131,7 @@ void kern_vm_init(void) {
   // map virtual address [KERN_BASE, _etext] to physical address [DRAM_BASE, DRAM_BASE+(_etext - KERN_BASE)],
   // to maintain (direct) text section kernel address mapping.
   kern_vm_map(t_page_dir, KERN_BASE, DRAM_BASE, (uint64)_etext - KERN_BASE,
-         prot_to_type(PROT_READ | PROT_EXEC, 0));
+         prot_to_type(PROT_READ | PROT_EXEC, 0)); // ANNOTATE:KERN_BASE = DRAM_BASE = 0x80000000
 
   sprint("KERN_BASE 0x%lx\n", lookup_pa(t_page_dir, KERN_BASE));
 
@@ -160,9 +162,9 @@ void *user_va_to_pa(pagetable_t page_dir, void *va) {
   // Also, it is possible that "va" is not mapped at all. in such case, we can find
   // invalid PTE, and should return NULL.
   // panic( "You have to implement user_va_to_pa (convert user va to pa) to print messages in lab2_1.\n" );
-  uint64 pa = lookup_pa(page_dir, (uint64)va);
+  uint64 pa = lookup_pa(page_dir, (uint64)va); // ANNOTATE:获取物理页号
   if (pa) {
-    pa += ((uint64)va & ((1 << PGSHIFT) - 1));
+    pa += ((uint64)va & ((1 << PGSHIFT) - 1)); // ANNOTATE:物理页号 + 偏移
     return (void *)pa;
   }
   else {

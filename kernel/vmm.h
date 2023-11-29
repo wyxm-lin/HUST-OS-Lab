@@ -13,7 +13,7 @@ enum VMPermision {
   PROT_EXEC = 4,
 };
 
-uint64 prot_to_type(int prot, int user);
+uint64 prot_to_type(int prot, int user); // ANNOTATE:convert permission to PTE type
 pte_t *page_walk(pagetable_t pagetable, uint64 va, int alloc);
 uint64 lookup_pa(pagetable_t pagetable, uint64 va);
 

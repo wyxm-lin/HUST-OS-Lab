@@ -1,0 +1,37 @@
+linking  obj/util.a ...
+Util lib has been build into "obj/util.a"
+linking  obj/spike_interface.a ...
+Spike lib has been build into "obj/spike_interface.a"
+linking obj/riscv-pke ...
+PKE core has been built into "obj/riscv-pke"
+linking obj/app_sum_sequence ...
+User app has been built into "obj/app_sum_sequence"
+********************HUST PKE********************
+spike obj/riscv-pke obj/app_sum_sequence
+In m_start, hartid:0
+HTIF is available!
+(Emulated) memory size: 2048 MB
+Enter supervisor mode...
+PKE kernel start 0x0000000080000000, PKE kernel end: 0x0000000080007000, PKE kernel size: 0x0000000000007000 .
+free physical memory address: [0x0000000080007000, 0x0000000087ffffff] 
+kernel memory manager is initializing ...
+KERN_BASE 0x0000000080000000
+physical address of _etext is: 0x0000000080004000
+kernel page table is on 
+User application is loading.
+user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000 
+Application: obj/app_sum_sequence
+Application program entry point (virtual address): 0x00000000000100a2
+Switch to user mode...
+handle_page_fault: 000000007fffdff8
+handle_page_fault: 000000007fffcff8
+handle_page_fault: 000000007fffbff8
+handle_page_fault: 000000007fffaff8
+handle_page_fault: 000000007fff9ff8
+handle_page_fault: 000000007fff8ff8
+handle_page_fault: 000000007fff7ff8
+handle_page_fault: 000000007fff6ff8
+handle_page_fault: 0000000000401000
+Summation of an arithmetic sequence from 0 to 1024 is: 525825 
+User exit with code:0.
+System is shutting down with exit code 0.
