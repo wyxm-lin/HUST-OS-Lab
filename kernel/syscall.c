@@ -16,6 +16,10 @@
 
 #include "spike_interface/spike_utils.h"
 
+// DONE: added @lab3_chanllenge1
+extern process procs[NPROC]; // 进程表声明
+extern process* ready_queue_head; // 就绪队列头指针声明
+
 //
 // implement the SYS_user_print syscall
 //
@@ -31,9 +35,20 @@ ssize_t sys_user_print(const char* buf, size_t n) {
 //
 // implement the SYS_user_exit syscall
 //
-ssize_t sys_user_exit(uint64 code) {
+ssize_t sys_user_exit(uint64 code) { // ANNOTATE: lab3的exit与lab1、lab2不同
   sprint("User exit with code:%d.\n", code);
   // reclaim the current process, and reschedule. added @lab3_1
+  // DONE:
+  if (current->parent != NULL && current->parent->status == BLOCKED) {
+    if (current->parent->wait_pid == -1) {
+      // 将父进程插入到就绪队列的头部
+      insert_to_ready_queue_for_wait(current->parent);
+    }
+    else if (current->parent->wait_pid == current->pid) {
+      // 将父进程插入到就绪队列的尾部
+      insert_to_ready_queue_for_wait(current->parent);
+    }
+  }
   free_process( current );
   schedule();
   return 0;
@@ -96,8 +111,36 @@ ssize_t sys_user_yield() {
 
 // DONE: added @ lab3_chanllenge
 long sys_user_wait(int pid) {
-  // return do_wait(pid);
-  return 0;
+  // sprint("lgm:current pid's state is %d\n", current->status);
+  if (pid == -1) {
+    // 设置为blocked & 设置等待的pid
+    current->status = BLOCKED;
+    current->wait_pid = -1;
+    // sprint("lgm:start wait -1\n");
+    // 调度
+    schedule();
+    // 返回
+    return current->wait_pid; // 在回到该进程时,current->wait_pid会被修改
+  }
+  else if (pid > 0) {
+    // 首先判定是否满足条件"pid是当前进程的子进程"
+    if (current != procs[pid].parent) {
+      // sprint("lgm:here");
+      return -1;
+    }
+    // sprint("lgm:start wait %d\n", pid);
+    // 设置为blocked & 设置等待的pid
+    current->status = BLOCKED;
+    current->wait_pid = pid;
+    // 调度
+    schedule();
+    // 返回
+    return pid;
+  }
+  else {
+    // pid不合法
+    return -1;
+  }
 }
 
 

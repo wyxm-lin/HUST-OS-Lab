@@ -105,6 +105,7 @@ elf_status elf_load(elf_ctx *ctx) {
 
     ((process*)(((elf_info*)(ctx->info))->p))->total_mapped_region ++; // ANNOTATE: 此处total_mapped_region++
   }
+  // sprint("lgm:total_mapped_region is %d\n", ((process*)(((elf_info*)(ctx->info))->p))->total_mapped_region);
 
   return EL_OK;
 }

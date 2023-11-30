@@ -14,6 +14,7 @@ int main(void) {
     int pid = fork();
     if (pid == 0) {
         flag = 1;
+        // printu("Child process end, flag = %d.\n", flag);
         pid = fork();
         if (pid == 0) {
             flag = 2;

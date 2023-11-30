@@ -98,6 +98,10 @@ process* alloc_process() {
     return 0;
   }
 
+  // DONE: added @ lab3_chanllenge1
+  procs[i].wait_pid = 0; // 没有需要等待的子进程
+  procs[i].parent = NULL; // 设置为没有父进程
+
   // NOTE: 以下部分和lab2大致相同 有部分地方不是很理解
   // init proc[i]'s vm space
   procs[i].trapframe = (trapframe *)alloc_page();  //trapframe, used to save context
@@ -115,6 +119,9 @@ process* alloc_process() {
   // allocates a page to record memory regions (segments)
   procs[i].mapped_info = (mapped_region*)alloc_page();
   memset( procs[i].mapped_info, 0, PGSIZE );
+
+  // TODO: delete this line
+  // sprint("lgm:mapped_info_region_num is %d\n", PGSIZE / sizeof(mapped_region));
 
   // map user stack in userspace
   user_vm_map((pagetable_t)procs[i].pagetable, USER_STACK_TOP - PGSIZE, PGSIZE,
@@ -181,7 +188,8 @@ int do_fork( process* parent)
 {
   sprint( "will fork a child from parent %d.\n", parent->pid );
   process* child = alloc_process();
-  for( int i = 0; i < parent->total_mapped_region; i++ ){ // ANNOTATE: 此处用的是 < 
+  // sprint("lgm:parent->total_mapped_region is %d\n", parent->total_mapped_region);
+  for( int i = 0; i < parent->total_mapped_region; i++ ){ // ANNOTATE: 此处用的是'<'
     // browse parent's vm space, and copy its trapframe and data segments,
     // map its code segment.
     switch( parent->mapped_info[i].seg_type ){
@@ -245,9 +253,21 @@ int do_fork( process* parent)
         child->mapped_info[child->total_mapped_region].seg_type = CODE_SEGMENT;
         child->total_mapped_region++; // ANNOTATE: 在line183中 child 被分配时， 其total_mapped_region已经被初始化为4
         break;
+      case DATA_SEGMENT: // DONE:
+        child->mapped_info[child->total_mapped_region].seg_type = DATA_SEGMENT;
+        child->mapped_info[child->total_mapped_region].va = parent->mapped_info[i].va;
+        child->mapped_info[child->total_mapped_region].npages = parent->mapped_info[i].npages;
+        for (int i = 0; i < child->mapped_info[child->total_mapped_region].npages; i++) {
+          uint64 child_pa = (uint64)alloc_page();
+          memcpy((void*)child_pa, (void*)lookup_pa(parent->pagetable, child->mapped_info[child->total_mapped_region].va + i * PGSIZE), PGSIZE);
+          map_pages(child->pagetable, child->mapped_info[child->total_mapped_region].va + i * PGSIZE, 1, child_pa, prot_to_type(PROT_WRITE | PROT_READ, 1));
+        }
+        child->total_mapped_region++; // ANNOTATE: 需要加1
+        break;
     }
   }
-
+  // sprint("lgm:this child's pid is %d\n", child->pid);
+  // sprint("lgm:this child's total_mapped_region is %d\n", child->total_mapped_region);
   child->status = READY;
   child->trapframe->regs.a0 = 0;
   child->parent = parent;

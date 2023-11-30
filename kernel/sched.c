@@ -35,6 +35,23 @@ void insert_to_ready_queue( process* proc ) {
   return;
 }
 
+void insert_to_ready_queue_for_wait(process * proc) {
+    sprint( "going to insert process %d to ready queue.\n", proc->pid );
+  // if the queue is empty in the beginning
+  proc->wait_pid = 0; // 清除效果
+  if( ready_queue_head == NULL ){
+    proc->status = READY;
+    proc->queue_next = NULL;
+    ready_queue_head = proc;
+    return;
+  }
+  proc->status = READY;
+  proc->queue_next = ready_queue_head;
+  ready_queue_head = proc;
+}
+
+
+
 //
 // choose a proc from the ready queue, and put it to run.
 // note: schedule() does not take care of previous current process. If the current
@@ -44,6 +61,29 @@ void insert_to_ready_queue( process* proc ) {
 extern process procs[NPROC];
 
 void schedule() {
+  // sprint("lgm:going to schedule\n");
+  // // 首先判断其父进程是否处于阻塞状态(NOTE: 需要判断其有父进程 && 甚至需要判断current是否存在 && 并且current进程不为BLOCKED中(区别于wait函数里面的修改))
+  // if (current != NULL && current->status != BLOCKED && current->parent != NULL && current->parent->status == BLOCKED) {
+  //   if (current->parent->wait_pid == -1) {
+  //     // 父进程等待任意一个子线程
+  //     current->parent->status = RUNNING;
+  //     current->parent->wait_pid = 0; // 清除效果
+  //     current = current->parent;
+  //     sprint( "going to insert process %d to ready queue.\n", current->pid );
+  //     sprint( "going to schedule process %d to run.\n", current->pid );
+  //     // sprint("lgm:here return\n");
+  //     return; // 直接返回
+  //   }
+  //   else if (current->parent->wait_pid == current->pid) {
+  //     // 父进程等待当前进程
+  //     current->parent->status = RUNNING;
+  //     current->parent->wait_pid = 0; // 清除效果
+  //     current = current->parent;
+  //     sprint( "going to insert process %d to ready queue.\n", current->pid );
+  //     sprint( "going to schedule process %d to run.\n", current->pid );
+  //     return; // 直接返回
+  //   }
+  // }
   if ( !ready_queue_head ){
     // by default, if there are no ready process, and all processes are in the status of
     // FREE and ZOMBIE, we should shutdown the emulated RISC-V machine.

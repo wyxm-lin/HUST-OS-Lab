@@ -74,7 +74,7 @@ typedef struct process_t {
   // points to a page that contains mapped_regions. below are added @lab3_1
   mapped_region *mapped_info;
   // next free mapped region in mapped_info
-  int total_mapped_region;
+  int total_mapped_region; // ANNOTATE: 两层意思：1. 总共映射的区域数；2. 下一个空闲的映射区域
 
   // heap management
   process_heap_manager user_heap;
@@ -87,6 +87,9 @@ typedef struct process_t {
   struct process_t *parent;
   // next queue element
   struct process_t *queue_next;
+
+  // DONE: add @ lab3_chanllenge1 与 block状态关联
+  uint64 wait_pid; // 需要等待的子进程的pid
 
   // accounting. added @lab3_3
   int tick_count;

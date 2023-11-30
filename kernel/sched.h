@@ -9,4 +9,6 @@
 void insert_to_ready_queue( process* proc );
 void schedule();
 
+// DONE:
+void insert_to_ready_queue_for_wait(process * proc);
 #endif
