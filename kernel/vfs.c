@@ -10,6 +10,11 @@
 #include "util/types.h"
 #include "util/hash_table.h"
 
+// DONE: add @lab4_chanllenge1
+#include "process.h"
+#include "vmm.h"
+extern process* current;
+
 struct dentry *vfs_root_dentry;               // system root direntry
 struct super_block *vfs_sb_list[MAX_MOUNTS];  // system superblock list
 struct device *vfs_dev_list[MAX_VFS_DEV];     // system device list in vfs layer
@@ -510,7 +515,44 @@ int vfs_closedir(struct file *file) {
 struct dentry *lookup_final_dentry(const char *path, struct dentry **parent,
                                    char *miss_name) {
   char path_copy[MAX_PATH_LEN];
-  strcpy(path_copy, path);
+  strcpy(path_copy, path); // ANNOTATE: 将用户态栈的内容拷贝到内核态栈
+  // sprint("lgm:lookup_final_dentry: origin path is %s\n", path_copy); // TEST
+  // DONE: 获取正确的path
+  if (path_copy[0] == '.') { // 说明是相对路径
+    char user_workspce[MAX_PATH_LEN];
+    memset(user_workspce, '\0', sizeof(user_workspce)); // NOTE:  注意下这句话(虽然说没懂具体原因)
+    memcpy(user_workspce, current->pfiles->cwd->name, strlen(current->pfiles->cwd->name));
+    // sprint("lgm:current process's workspace directory is %s\n", current->pfiles->cwd->name); // TEST
+    // sprint("lgm:user_workspce is %s\n", user_workspce); // TEST
+    if (path_copy[1] == '.') {
+      // cd ..类型
+      // 将current->pfiles->cwd->name回到上一层目录
+      int len = strlen(user_workspce);
+      for (int i = len - 1; i >= 0; i--) {
+        if (user_workspce[i] == '/') {
+          user_workspce[i] = '\0';
+          break;
+        }
+        user_workspce[i] = '\0';
+      }
+      // 重新计算它的长度
+      len = strlen(user_workspce);
+      if (len == 0) {
+        // 如果长度为0，说明已经到达根目录了
+        user_workspce[0] = '/';
+        user_workspce[1] = '\0';
+      }
+    }
+      // 偏移位置(用于解决 "/" + "/abc" = "//abc"的情形)
+    int offset = 0;
+    if (strlen(user_workspce) == 1) { // 当前目录为根目录
+      offset = 1;
+    }
+     // 目录开始拼接
+    strcat(user_workspce, strchr(path_copy, '/') + offset);
+    strcpy(path_copy, user_workspce); // 修改path_copy
+  }
+  // sprint("lgm:open real path is %s\n", path_copy); // TEST
 
   // split the path, and retrieves a token at a time.
   // note: strtok() uses a static (local) variable to store the input path
@@ -518,7 +560,7 @@ struct dentry *lookup_final_dentry(const char *path, struct dentry **parent,
   // for example, when input path is: /RAMDISK0/test_dir/ramfile2
   // strtok() outputs three tokens: 1)RAMDISK0, 2)test_dir and 3)ramfile2
   // at its three continuous invocations.
-  char *token = strtok(path_copy, "/");
+  char *token = strtok(path_copy, "/"); // ANNOTATE: strtok函数->分割字符串
   struct dentry *this = *parent;
 
   while (token != NULL) {
@@ -570,10 +612,11 @@ void get_base_name(const char *path, char *base_name) {
   char *last_token = NULL;
   while (token != NULL) {
     last_token = token;
-    token = strtok(NULL, "/");
+    token = strtok(NULL, "/"); 
   }
 
   strcpy(base_name, last_token);
+  // sprint("lgm:get_base_name func output is %s\n", base_name); // TEST
 }
 
 //

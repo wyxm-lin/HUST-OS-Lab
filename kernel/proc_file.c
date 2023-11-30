@@ -105,6 +105,7 @@ int do_open(char *pathname, int flags) {
 // return: actual length of data read from the file.
 //
 int do_read(int fd, char *buf, uint64 count) {
+  // sprint("lgm:do_read:fd:%d\n", fd);
   struct file *pfile = get_opened_file(fd);
 
   if (pfile->readable == 0) panic("do_read: no readable file!\n");
@@ -121,6 +122,7 @@ int do_read(int fd, char *buf, uint64 count) {
 // return: actual length of data written to the file.
 //
 int do_write(int fd, char *buf, uint64 count) {
+  // sprint("lgm:do_write:fd:%d\n", fd);
   struct file *pfile = get_opened_file(fd);
 
   if (pfile->writable == 0) panic("do_write: cannot write file!\n");
@@ -220,4 +222,11 @@ int do_link(char *oldpath, char *newpath) {
 //
 int do_unlink(char *path) {
   return vfs_unlink(path);
+}
+
+// DONE: added @ lab4_chanllenge_1
+void update_when_ccwd() {
+  current->pfiles->nfiles = 0; // 打开文件数量为0
+  for (int fd = 0; fd < MAX_FILES; ++fd) // 设置状态
+    current->pfiles->opened_files[fd].status = FD_NONE;
 }

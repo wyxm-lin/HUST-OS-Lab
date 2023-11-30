@@ -35,6 +35,9 @@ typedef struct proc_file_management_t {
 
 proc_file_management *init_proc_file_management(void);
 
+// DONE: added @ lab4_chanllenge
+void update_when_ccwd();
+
 void reclaim_proc_file_management(proc_file_management *pfiles);
 
 #endif

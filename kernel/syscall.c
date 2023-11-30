@@ -213,6 +213,89 @@ ssize_t sys_user_unlink(char * vfn){
   return do_unlink(pfn);
 }
 
+
+// DONE: added @ lab4_chanllenge_1
+ssize_t sys_user_rcwd(uint64 path) {
+  // sprint("lgm: rcwd: current process's workspace directory is %s\n", current->pfiles->cwd->name);
+  // 注意需要将用户态的虚拟地址转换为用户态的物理地址
+  uint64 pa = (uint64)user_va_to_pa((pagetable_t)(current->pagetable), (void*)path);
+  memcpy((char*)pa, current->pfiles->cwd->name, strlen(current->pfiles->cwd->name));
+  return 0;
+}
+
+// DONE: added @ lab4_chanllenge_1
+ssize_t sys_user_ccwd(uint64 path) {
+  // NOTE: 暂且不做路径的合法性分析
+  // sprint("lgm: ccwd: origin:current process's workspace directory is %s\n", current->pfiles->cwd->name);
+  // 转换为用户态的物理地址
+  uint64 pa = (uint64)user_va_to_pa((pagetable_t)(current->pagetable), (void*)path);
+  char* data = (char*)pa;
+  // sprint("lgm:the data is %s\n", data);
+  char tmp[MAX_PATH_LEN];
+  memset(tmp, '\0', MAX_PATH_LEN);
+  // sprint("lgm:come here\n");
+  memcpy(tmp, current->pfiles->cwd->name, strlen(current->pfiles->cwd->name));
+  if (data[0] == '.') {
+    if (data[1] == '.') {
+      // cd ..类型
+      // 将current->pfiles->cwd->name回到上一层目录
+      int len = strlen(tmp);
+      for (int i = len - 1; i >= 0; i--) {
+        if (tmp[i] == '/') {
+          tmp[i] = '\0';
+          break;
+        }
+        tmp[i] = '\0';
+      }
+      // 重新计算它的长度
+      len = strlen(tmp);
+      if (len == 0) {
+        // 如果长度为0，说明已经到达根目录了
+        tmp[0] = '/';
+        tmp[1] = '\0';
+      }
+    }
+    // 偏移位置(用于解决 "/" + "/abc" = "//abc"的情形)
+    int offset = 0;
+    if (strlen(tmp) == 1) { // 当前目录为根目录
+      offset = 1;
+    }
+    // 目录开始拼接
+    // sprint("lgm:come here 2\n");
+    int st = 0;
+    for (int i = 0; i < strlen(data); i++) {
+      if (data[i] == '/') {
+        st = i;
+        break;
+      }
+    }
+    if (st != 0) {
+      // 说明不是 .. 类型 -> 拼接
+      int len = strlen(tmp);
+      for (int i = st + offset; i < strlen(data) ;i++) {
+        tmp[len++] = data[i];
+      }
+    }
+    // strcat(tmp, strchr(data, '/') + offset);
+    // sprint("lgm:come here 3\n");
+    // sprint("lgm:the tmp is %s\n", tmp);
+    // 将tmp赋给current->pfiles->cwd->name
+    memset(current->pfiles->cwd->name, '\0', MAX_PATH_LEN);
+    memcpy(current->pfiles->cwd->name, tmp, strlen(tmp));
+    // 更新
+    update_when_ccwd();
+  }
+  else if (data[0] == '/') {
+    // cd /xxx的情形
+    // 直接将data的内容复制给current->pfiles->cwd->name即可
+    memcpy(current->pfiles->cwd->name, data, strlen(data));
+    // 更新
+    update_when_ccwd();
+  }
+  // sprint("lgm: ccwd: next:current process's workspace directory is %s\n", current->pfiles->cwd->name);
+  return 0;
+}
+
 //
 // [a0]: the syscall number; [a1] ... [a7]: arguments to the syscalls.
 // returns the code of success, (e.g., 0 means success, fail for otherwise)
@@ -261,6 +344,11 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
       return sys_user_link((char *)a1, (char *)a2);
     case SYS_user_unlink:
       return sys_user_unlink((char *)a1);
+    // DONE: added @ lab4_chanllenge_1
+    case SYS_user_rcwd:
+      return sys_user_rcwd((uint64)a1);
+    case SYS_user_ccwd:
+      return sys_user_ccwd((uint64)a1);
     default:
       panic("Unknown syscall %ld \n", a0);
   }

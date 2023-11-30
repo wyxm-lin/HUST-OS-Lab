@@ -4,6 +4,7 @@
 
 void pwd() {
   char path[30];
+  // memset(path, 0, 30);
   read_cwd(path);
   printu("cwd:%s\n", path);
 }
@@ -14,6 +15,10 @@ void cd(const char *path) {
 }
 
 int main(int argc, char *argv[]) {
+  // sprint("lgm:current process's workspace directory is %s\n", current->pfiles->cwd->name);
+  //("lgm:current process's workspace directory is %s\n", current->pfiles->cwd->name);
+  // pwd();
+  // cd("./RAMDISK0");
   int fd;
   int MAXBUF = 512;
   char buf[MAXBUF];
