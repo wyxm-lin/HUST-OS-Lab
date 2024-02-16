@@ -56,6 +56,15 @@ uint64 sys_user_free_page(uint64 va) {
   return 0;
 }
 
+// ADD:lab2_challenge2
+uint64 sys_user_better_malloc(uint64 n) {
+  return 0;
+}
+
+uint64 sys_user_better_free(uint64 va) {
+  return 0;
+}
+
 //
 // [a0]: the syscall number; [a1] ... [a7]: arguments to the syscalls.
 // returns the code of success, (e.g., 0 means success, fail for otherwise)
@@ -68,9 +77,9 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
       return sys_user_exit(a1);
     // added @lab2_2
     case SYS_user_allocate_page:
-      return sys_user_allocate_page();
+      return sys_user_better_malloc(a1); // a1为申请的字节数
     case SYS_user_free_page:
-      return sys_user_free_page(a1);
+      return sys_user_free_page(a1); // a1为虚拟地址
     default:
       panic("Unknown syscall %ld \n", a0);
   }

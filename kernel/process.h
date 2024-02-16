@@ -3,6 +3,13 @@
 
 #include "riscv.h"
 
+// ADD
+typedef struct m_rib {
+    struct m_rib* next;
+    uint64 size;
+    uint64 va; // ¥Ê¥¢va
+}m_rib;
+
 typedef struct trapframe_t {
   // space to store context (all common registers)
   /* offset:0   */ riscv_regs regs;
@@ -26,6 +33,8 @@ typedef struct process_t {
   pagetable_t pagetable;
   // trapframe storing the context of a (User mode) process.
   trapframe* trapframe;
+  // ADD
+  m_rib* memory_rib;
 }process;
 
 // switch to run user app
@@ -36,5 +45,9 @@ extern process* current;
 
 // address of the first free page in our simple heap. added @lab2_2
 extern uint64 g_ufree_page;
+
+// ADD:
+void* better_alloc(uint64 n); // ∑÷≈‰pa + ”≥…‰µΩpagetable + ∑µªÿva
+void better_free(void* va); // 
 
 #endif
