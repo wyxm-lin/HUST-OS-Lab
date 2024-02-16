@@ -104,7 +104,7 @@ void read_uint16(uint16 *out, char **off) {
 * and their code file name index of array "file"
 */
 void make_addr_line(elf_ctx *ctx, char *debug_line, uint64 length) {
-   process *p = ((elf_info *)ctx->info)->p;
+    process *p = ((elf_info *)ctx->info)->p;
     p->debugline = debug_line;
     // directory name char pointer array
     p->dir = (char **)((((uint64)debug_line + length + 7) >> 3) << 3); int dir_ind = 0, dir_base;
@@ -212,7 +212,7 @@ elf_status elf_load(elf_ctx *ctx) {
     if (ph_addr.vaddr + ph_addr.memsz < ph_addr.vaddr) return EL_ERR;
 
     // allocate memory block before elf loading
-    void *dest = elf_alloc_mb(ctx, ph_addr.vaddr, ph_addr.vaddr, ph_addr.memsz);
+    void *dest = elf_alloc_mb(ctx, ph_addr.vaddr, ph_addr.vaddr, ph_addr.memsz); // comment:直接将虚拟地址当成实地址
 
     // actual loading
     if (elf_fpread(ctx, dest, ph_addr.memsz, ph_addr.off) != ph_addr.memsz)
@@ -220,6 +220,25 @@ elf_status elf_load(elf_ctx *ctx) {
   }
 
   return EL_OK;
+}
+
+
+
+// ADD: load debug line info
+static char debug_line[0x2000]; // 使用足够大的静态全局变量
+static elf_status load_debug_line_info(elf_ctx* ctx, process* p) {
+    elf_sect_header debug_line_header;
+    if (elf_fpread(ctx, &debug_line_header, sizeof(debug_line_header), ctx->ehdr.shoff + 7 * sizeof(elf_sect_header)) != sizeof(elf_sect_header)) // comment: 7为.debug_line的section index
+        return EL_EIO;
+    if (elf_fpread(ctx, debug_line, debug_line_header.size, debug_line_header.offset) != debug_line_header.size)
+        return EL_EIO;
+    make_addr_line(ctx, debug_line, debug_line_header.size);
+    // sprint("lgm:start to see the debug_line comment\n");
+    // sprint("lgm:origin line_ind is %d\n", p->line_ind);
+    // for (int i = 0; i < p->line_ind; i++)
+    //     sprint("lgm:%p %d %d\n", p->line[i].addr, p->line[i].line, p->line[i].file);
+    // sprint("lgm:end to see the debug_line comment\n");
+    return EL_OK;
 }
 
 typedef union {
@@ -276,6 +295,9 @@ void load_bincode_from_host_elf(process *p) {
 
   // load elf. elf_load() is defined above.
   if (elf_load(&elfloader) != EL_OK) panic("Fail on loading elf.\n");
+
+  // ADD:
+  if (load_debug_line_info(&elfloader, p) != EL_OK) panic("Fail on loading debug line info.\n");
 
   // entry (virtual, also physical in lab1_x) address
   p->trapframe->epc = elfloader.ehdr.entry;

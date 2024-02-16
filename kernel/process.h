@@ -40,4 +40,7 @@ void switch_to(process*);
 
 extern process* current;
 
+// ADD:
+void debug_info_print(uint64 mepc);
+
 #endif

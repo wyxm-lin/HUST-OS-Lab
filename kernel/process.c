@@ -54,3 +54,52 @@ void switch_to(process* proc) {
   // return_to_user() is defined in kernel/strap_vector.S. switch to user mode with sret.
   return_to_user(proc->trapframe);
 }
+
+// ADD:
+char filename[128]; // comment:固定100长度不是很好的写法
+char buf[0x1000];
+struct stat st;
+void debug_info_print(uint64 mepc) {
+  // 寻找最近的代码
+  // sprint("lgm:debug_info_print begin!\n");
+  for (int i = 0; i < current->line_ind; i++) {
+    if (current->line[i].addr > mepc) {
+      // 打印文件名 + 行号
+      sprint("Runtime error at ");
+      sprint("%s/", current->dir[current->file[current->line[i - 1].file].dir]);
+      sprint("%s:", current->file[current->line[i - 1].file].file);
+      sprint("%d\n", current->line[i - 1].line);
+      // 打印代码
+      
+      strcpy(filename, current->dir[current->file[current->line[i - 1].file].dir]);
+      // sprint("over\n");
+      strcpy(filename + strlen(filename), "/");
+      strcpy(filename + strlen(filename), current->file[current->line[i - 1].file].file);
+      // sprint("lgm:the file name is %s\n", filename);
+      spike_file_t* fp = spike_file_open(filename, O_RDONLY, 0);
+      spike_file_stat(fp, &st);
+      spike_file_read(fp, buf, st.st_size);
+      spike_file_close(fp);
+      int idx = 0;
+      int cnt = 0;
+      while (idx < st.st_size) {
+        if (buf[idx] == '\n') {
+          cnt++;
+          if (cnt == current->line[i - 1].line - 1) {
+            for (int j = idx + 1; j < st.st_size; j++) {
+              if (buf[j] == '\n') {
+                break;
+              }
+              sprint("%c", buf[j]);
+            }
+            break;
+          }
+        }
+        idx++;
+      }
+      sprint("\n");
+      break;
+    }
+  }
+  // sprint("lgm:debug_info_print end\n"); 
+}

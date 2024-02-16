@@ -38,12 +38,13 @@ typedef struct elf_prog_header_t {
 } elf_prog_header;
 
 // elf section header
+// comment: 节头表项
 typedef struct elf_sect_header_t{
-    uint32 name;
-    uint32 type;
+    uint32 name; // comment: 节头表索引
+    uint32 type; // comment: 节类型
     uint64 flags;
     uint64 addr;
-    uint64 offset;
+    uint64 offset; // comment: 偏移量
     uint64 size;
     uint32 link;
     uint32 info;
