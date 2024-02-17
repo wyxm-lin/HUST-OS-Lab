@@ -98,7 +98,10 @@ void spike_file_init(void) {
 
 spike_file_t* spike_file_openat(int dirfd, const char* fn, int flags, int mode) {
   spike_file_t* f = spike_file_get_free();
-  if (f == NULL) return ERR_PTR(-ENOMEM);
+  if (f == NULL) {
+    // sprint("here error\n");
+    return ERR_PTR(-ENOMEM);
+  }
 
   size_t fn_size = strlen(fn) + 1;
   long ret = frontend_syscall(HTIFSYS_openat, dirfd, (uint64)fn, fn_size, flags, mode, 0, 0);
@@ -106,12 +109,15 @@ spike_file_t* spike_file_openat(int dirfd, const char* fn, int flags, int mode) 
     f->kfd = ret;
     return f;
   } else {
+    // sprint("error ret is %d\n", ret);
+    // sprint("here error2\n");
     spike_file_decref(f);
     return ERR_PTR(ret);
   }
 }
 
 spike_file_t* spike_file_open(const char* fn, int flags, int mode) {
+  // sprint("lgm:spike_file_open the fn is %s\n", fn);
   return spike_file_openat(AT_FDCWD, fn, flags, mode);
 }
 
@@ -120,6 +126,7 @@ ssize_t spike_file_pread(spike_file_t* f, void* buf, size_t size, off_t offset) 
 }
 
 ssize_t spike_file_read(spike_file_t* f, void* buf, size_t size) {
+  // sprint("f->kfd is %d", f->kfd);
   return frontend_syscall(HTIFSYS_read, f->kfd, (uint64)buf, size, 0, 0, 0, 0);
 }
 

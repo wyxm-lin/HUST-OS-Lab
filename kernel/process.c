@@ -269,12 +269,39 @@ int do_fork(process *parent)
     return child->pid;
 }
 
-
 // 根据alloc_process函数改写
+static void exec_clean_free_pagetable(uint64 pagetable) {
+    int cnt = PGSIZE / sizeof(pte_t);
+    for (int i = 0; i < cnt; i++) {
+        pte_t* pte1 = (pte_t *)(pagetable + i * sizeof(pte_t));
+        if (*pte1 & PTE_V) { // 一级有效
+            uint64 pagetable1 = PTE2PA(*pte1);
+            for (int j = 0; j < cnt; j++ ) {
+                pte_t* pte2 = (pte_t *)(pagetable1 + j * sizeof(pte_t));
+                if (*pte2 & PTE_V) { // 二级有效
+                    uint64 pagetable2 = PTE2PA(*pte2);
+                    for (int k = 0; k < cnt; k++) {
+                        pte_t* pte3 = (pte_t *)(pagetable2 + k * sizeof(pte_t));
+                        if (*pte3 & PTE_V) { // 三级有效
+                            uint64 page = PTE2PA(*pte3);
+                            free_page((void *)page);
+                        }
+                    }
+                    free_page((void *)pagetable2);
+                }
+            }
+            free_page((void *)pagetable1);
+        }
+    }
+    free_page((void *)pagetable);
+}
+
 void exec_clean(process* p) {
-    // FIXME 先不管之前的内存有没有全部释放掉
+    // FIXME 以下函数有误
+    // exec_clean_free_pagetable((uint64)p->pagetable);
+
     // init proc[i]'s vm space
-    p->trapframe = (trapframe *)alloc_page(); // trapframe, used to save context
+    p->trapframe = (trapframe *)alloc_page(); // trapframe, used to save context 
     memset(p->trapframe, 0, sizeof(trapframe));
 
     // page directory
@@ -297,7 +324,7 @@ void exec_clean(process* p) {
     p->mapped_info[STACK_SEGMENT].seg_type = STACK_SEGMENT;
 
     // map trapframe in user space (direct mapping as in kernel space).
-    user_vm_map((pagetable_t)p->pagetable, (uint64)p->trapframe, PGSIZE,
+    user_vm_map((pagetable_t)p->pagetable, (uint64)p->trapframe, PGSIZE, // trapframe的物理地址等于虚拟地址
                 (uint64)p->trapframe, prot_to_type(PROT_WRITE | PROT_READ, 0));
     p->mapped_info[CONTEXT_SEGMENT].va = (uint64)p->trapframe;
     p->mapped_info[CONTEXT_SEGMENT].npages = 1;

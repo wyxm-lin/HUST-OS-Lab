@@ -131,7 +131,7 @@ int do_read(int fd, char *buf, uint64 count)
     char buffer[count + 1];
     int len = vfs_read(pfile, buffer, count);
     buffer[count] = '\0';
-    strcpy(buf, buffer);
+    strcpy(buf, buffer); // 我真的。。。。。
     return len;
 }
 
@@ -257,91 +257,106 @@ int do_unlink(char *path)
 }
 
 // ADD
+static void print_ehdr(elf_header *ehdr)
+{
+    sprint("lgm:ehdr.magic = %0x\n", ehdr->magic);
+    sprint("lgm:ehdr.type = %0x\n", ehdr->type);
+    sprint("lgm:ehdr.machine = %0x\n", ehdr->machine);
+    sprint("lgm:ehdr.version = %0x\n", ehdr->version);
+    sprint("lgm:ehdr.entry = %0x\n", ehdr->entry);
+    sprint("lgm:ehdr.phoff = %0x\n", ehdr->phoff);
+    sprint("lgm:ehdr.shoff = %0x\n", ehdr->shoff);
+    sprint("lgm:ehdr.flags = %0x\n", ehdr->flags);
+    sprint("lgm:ehdr.ehsize = %0x\n", ehdr->ehsize);
+    sprint("lgm:ehdr.phentsize = %0x\n", ehdr->phentsize);
+    sprint("lgm:ehdr.phnum = %0x\n", ehdr->phnum);
+    sprint("lgm:ehdr.shentsize = %0x\n", ehdr->shentsize);
+    sprint("lgm:ehdr.shnum = %0x\n", ehdr->shnum);
+    sprint("lgm:ehdr.shstrndx = %0x\n", ehdr->shstrndx);
+}
+
 // 根据elf文件的函数改写
 static void exec_bincode(process *p, char *path)
 {
     sprint("Application: %s\n", path);
+    // 加载ehdr
     int fp = do_open(path, O_RDONLY);
-    // 加载elf_header
+    spike_file_t *f = (spike_file_t *)(get_opened_file(fp)->f_dentry->dentry_inode->i_fs_info); // 看第134行。。。。
     elf_header ehdr;
-    if (do_read(fp, (char *)&ehdr, sizeof(elf_header)) != sizeof(elf_header))
+    if (spike_file_read(f, &ehdr, sizeof(elf_header)) != sizeof(elf_header))
     {
-        panic("do_exec: cannot read elf header.\n");
+        panic("read elf header error\n");
     }
     if (ehdr.magic != ELF_MAGIC)
     {
         panic("do_exec: not an elf file.\n");
     }
+    print_ehdr(&ehdr);
+
     // 加载代码段 & 数据段
     elf_prog_header ph_addr;
-    sprint("phnum: %d\n", ehdr.phnum);
-    return;
     for (int i = 0, off = ehdr.phoff; i < ehdr.phnum; i++, off += sizeof(ph_addr))
     {
         // step1: 加载程序头entry
-        do_lseek(fp, off, SEEK_SET); // seek to the program header
-        if (do_read(fp, (char *)&ph_addr, sizeof(ph_addr)) != sizeof(ph_addr))
+        spike_file_lseek(f, off, SEEK_SET); // seek to the program header
+        if (spike_file_read(f, &ph_addr, sizeof(ph_addr)) != sizeof(ph_addr))
         {
-            panic("do_exec: cannot read program header.\n");
+            panic("read elf program header error\n");
         }
         if (ph_addr.type != ELF_PROG_LOAD) // 通常只有代码段和数据段是ELF_PROG_LOAD的
             continue;
         if (ph_addr.memsz < ph_addr.filesz)
         {
-            panic("do_exec: memsz < filesz.\n");
+            panic("memsz < filesz error.\n");
         }
         if (ph_addr.vaddr + ph_addr.memsz < ph_addr.vaddr)
         {
-            panic("do_exec: vaddr + memsz < vaddr.\n");
+            panic("vaddr + memsz < vaddr error.\n");
         }
 
-        // // step2: 加载段
-        // void *pa = alloc_page(); // 分配一页内存
-        // memset(pa, 0, PGSIZE);
-        // user_vm_map((pagetable_t)p->pagetable, ph_addr.vaddr, PGSIZE, (uint64)pa, prot_to_type(PROT_WRITE | PROT_READ | PROT_EXEC, 1));
-        // do_lseek(fp, ph_addr.off, SEEK_SET); 
-        // if (do_read(fp, pa, ph_addr.memsz) != ph_addr.memsz)
-        // {
-        //     panic("do_exec: cannot read program segment.\n");
-        // }
+        // step2: 加载段
+        void *pa = alloc_page(); // 分配一页内存
+        memset(pa, 0, PGSIZE);
+        user_vm_map((pagetable_t)p->pagetable, ph_addr.vaddr, PGSIZE, (uint64)pa, prot_to_type(PROT_WRITE | PROT_READ | PROT_EXEC, 1));
+        spike_file_lseek(f, ph_addr.off, SEEK_SET);
+        if (spike_file_read(f, pa, ph_addr.memsz) != ph_addr.memsz)
+        {
+            panic("read program segment error.\n");
+        }
 
-        // // step3: 填补mapped_info
-        // int pos;
-        // for (pos = 0; pos < PGSIZE / sizeof(mapped_region); pos++) // seek the last mapped region
-        //     if (p->mapped_info[pos].va == 0x0)
-        //         break;
+        // step3: 填补mapped_info
+        int pos;
+        for (pos = 0; pos < PGSIZE / sizeof(mapped_region); pos++) // seek the last mapped region
+            if (p->mapped_info[pos].va == 0x0)
+                break;
 
-        // p->mapped_info[pos].va = ph_addr.vaddr;
-        // p->mapped_info[pos].npages = 1;
+        p->mapped_info[pos].va = ph_addr.vaddr;
+        p->mapped_info[pos].npages = 1;
 
-        // // SEGMENT_READABLE, SEGMENT_EXECUTABLE, SEGMENT_WRITABLE are defined in kernel/elf.h
-        // if (ph_addr.flags == (SEGMENT_READABLE | SEGMENT_EXECUTABLE))
-        // {
-        //     p->mapped_info[pos].seg_type = CODE_SEGMENT;
-        //     sprint("CODE_SEGMENT added at mapped info offset:%d\n", pos);
-        // }
-        // else if (ph_addr.flags == (SEGMENT_READABLE | SEGMENT_WRITABLE))
-        // {
-        //     p->mapped_info[pos].seg_type = DATA_SEGMENT;
-        //     sprint("DATA_SEGMENT added at mapped info offset:%d\n", pos);
-        // }
-        // else
-        //     panic("unknown program segment encountered, segment flag:%d.\n", ph_addr.flags);
+        // SEGMENT_READABLE, SEGMENT_EXECUTABLE, SEGMENT_WRITABLE are defined in kernel/elf.h
+        if (ph_addr.flags == (SEGMENT_READABLE | SEGMENT_EXECUTABLE))
+        {
+            p->mapped_info[pos].seg_type = CODE_SEGMENT;
+            sprint("CODE_SEGMENT added at mapped info offset:%d\n", pos);
+        }
+        else if (ph_addr.flags == (SEGMENT_READABLE | SEGMENT_WRITABLE))
+        {
+            p->mapped_info[pos].seg_type = DATA_SEGMENT;
+            sprint("DATA_SEGMENT added at mapped info offset:%d\n", pos);
+        }
+        else
+            panic("unknown program segment encountered, segment flag:%d.\n", ph_addr.flags);
 
-        // p->total_mapped_region++;
+        p->total_mapped_region++;
     }
     // 设置tramframe
     p->trapframe->epc = ehdr.entry;
     sprint("Application program entry point (virtual address): 0x%lx\n", p->trapframe->epc);
-    panic("test");
 }
 
 int do_exec(char *path)
 {
-    // // TODO
-    // sprint("lgm:do_exec: path = %s\n", path);
-    // sprint("lgm:pwd = %s\n", current->pfiles->cwd->name);
-    // exec_clean(current);
+    exec_clean(current);
     exec_bincode(current, path);
     return -1;
 }

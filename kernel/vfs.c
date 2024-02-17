@@ -109,12 +109,13 @@ struct super_block *vfs_mount(const char *dev_name, int mnt_type) {
 // return: the file pointer to the opened file.
 //
 struct file *vfs_open(const char *path, int flags) {
+  // sprint("lgm: vfs_open: path = %s\n", path);
   struct dentry *parent = vfs_root_dentry; // we start the path lookup from root.
   char miss_name[MAX_PATH_LEN];
-
+  // sprint("parent->name is %s\n", parent->name);
   // path lookup.
   struct dentry *file_dentry = lookup_final_dentry(path, &parent, miss_name);
-
+  // sprint("lgm: vfs_open: after lookup_final_dentry\n");
   // file does not exist
   if (!file_dentry) {
     int creatable = flags & O_CREAT;
@@ -524,12 +525,15 @@ struct dentry *lookup_final_dentry(const char *path, struct dentry **parent,
   while (token != NULL) {
     *parent = this;
     this = hash_get_dentry((*parent), token);  // try hash first
+    // sprint("lgm:lookup_final_dentry: after hash_get_dentry\n");
     if (this == NULL) {
       // if not found in hash, try to find it in the directory
       this = alloc_vfs_dentry(token, NULL, *parent);
+      // sprint("lgm:lookup_final_dentry: after alloc_vfs_dentry\n");
       // lookup subfolder/file in its parent directory. note:
       // hostfs and rfs will take different procedures for lookup.
       struct vinode *found_vinode = viop_lookup((*parent)->dentry_inode, this);
+      // sprint("lgm:lookup_final_dentry: after viop_lookup\n");
       if (found_vinode == NULL) {
         // not found in both hash table and directory file on disk.
         free_page(this);

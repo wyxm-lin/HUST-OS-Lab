@@ -1,0 +1,1 @@
+riscv64-unknown-elf-readelf -h ./hostfs_root/bin/app_ls > readelf_ehdr_app_ls.txt
