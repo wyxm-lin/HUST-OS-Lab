@@ -1,0 +1,28 @@
+linking  obj/util.a ...
+Util lib has been build into "obj/util.a"
+linking  obj/spike_interface.a ...
+Spike lib has been build into "obj/spike_interface.a"
+linking obj/riscv-pke ...
+PKE core has been built into "obj/riscv-pke"
+linking obj/app_singlepageheap ...
+User app has been built into "obj/app_singlepageheap"
+********************HUST PKE********************
+spike obj/riscv-pke obj/app_singlepageheap
+In m_start, hartid:0
+HTIF is available!
+(Emulated) memory size: 2048 MB
+Enter supervisor mode...
+PKE kernel start 0x0000000080000000, PKE kernel end: 0x0000000080007000, PKE kernel size: 0x0000000000007000 .
+free physical memory address: [0x0000000080007000, 0x0000000087ffffff] 
+kernel memory manager is initializing ...
+KERN_BASE 0x0000000080000000
+physical address of _etext is: 0x0000000080004000
+kernel page table is on 
+User application is loading.
+user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000 
+Application: obj/app_singlepageheap
+Application program entry point (virtual address): 0x000000000001008a
+Switch to user mode...
+free_page 0x0000000087fbaf68 
+
+System is shutting down with exit code -1.

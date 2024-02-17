@@ -10,9 +10,16 @@ static void handle_store_access_fault() { panic("Store/AMO access fault!"); }
 
 static void handle_illegal_instruction() { panic("Illegal instruction!"); }
 
-static void handle_misaligned_load() { panic("Misaligned Load!"); }
+// ADD
+static void handle_misaligned_load() { 
+  return; 
+  //panic("Misaligned Load!"); 
+}
 
-static void handle_misaligned_store() { panic("Misaligned AMO!"); }
+static void handle_misaligned_store() { 
+  // return; 
+  panic("Misaligned AMO!"); 
+}
 
 // added @lab1_3
 static void handle_timer() {
@@ -29,6 +36,7 @@ static void handle_timer() {
 //
 void handle_mtrap() {
   uint64 mcause = read_csr(mcause);
+  sprint("lgm:mepc=%p mtval=%p mcause=%p\n", read_csr(mepc), read_csr(mtval), mcause);
   switch (mcause) {
     case CAUSE_MTIMER:
       handle_timer();

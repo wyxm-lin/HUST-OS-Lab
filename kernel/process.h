@@ -5,9 +5,8 @@
 
 // ADD
 typedef struct m_rib {
-    struct m_rib* next;
-    uint64 size;
-    uint64 va; // 存储va
+  uint64 cap; // 内存块实际大小
+  uint64 next;
 }m_rib;
 
 typedef struct trapframe_t {
@@ -34,7 +33,8 @@ typedef struct process_t {
   // trapframe storing the context of a (User mode) process.
   trapframe* trapframe;
   // ADD
-  m_rib* memory_rib;
+  uint64 rib_used; // 存放虚拟地址
+  uint64 rib_free; // 存放虚拟地址
 }process;
 
 // switch to run user app
@@ -48,6 +48,7 @@ extern uint64 g_ufree_page;
 
 // ADD:
 void* better_alloc(uint64 n); // 分配pa + 映射到pagetable + 返回va
-void better_free(void* va); // 
+void better_free(uint64 va); // 根据va释放内存(当完整的页被释放时，释放pa)
+void best_free(uint64 va); // 释放内存(当完整的页被释放时，释放pa) + 空闲块合并
 
 #endif
