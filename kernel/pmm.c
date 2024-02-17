@@ -62,7 +62,7 @@ void *alloc_page(void) {
 //
 void pmm_init() {
   // start of kernel program segment
-  uint64 g_kernel_start = KERN_BASE;
+  uint64 g_kernel_start = KERN_BASE; // KERN_BASE = 0x80000000
   uint64 g_kernel_end = (uint64)&_end;
 
   uint64 pke_kernel_size = g_kernel_end - g_kernel_start;
