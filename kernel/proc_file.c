@@ -221,3 +221,10 @@ int do_link(char *oldpath, char *newpath) {
 int do_unlink(char *path) {
   return vfs_unlink(path);
 }
+
+int do_exec(char *path) {
+  // TODO
+  sprint("lgm:do_exec: path = %s\n", path);
+  sprint("lgm:pwd = %s\n", current->pfiles->cwd->name);
+  return -1;
+}
