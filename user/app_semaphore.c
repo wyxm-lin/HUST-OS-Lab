@@ -11,7 +11,7 @@ int main(void) {
     main_sem = sem_new(1); 
     for (int i = 0; i < 2; i++) child_sem[i] = sem_new(0);
     int pid = fork();
-    if (pid == 0) {
+    if (pid == 0) { // вс╫ЬЁл
         pid = fork();
         for (int i = 0; i < 10; i++) {
             sem_P(child_sem[pid == 0]);
