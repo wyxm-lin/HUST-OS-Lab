@@ -291,7 +291,7 @@ static void exec_bincode(process *p, char *path)
     {
         panic("do_exec: not an elf file.\n");
     }
-    print_ehdr(&ehdr);
+    // print_ehdr(&ehdr);
 
     // 加载代码段 & 数据段
     elf_prog_header ph_addr;

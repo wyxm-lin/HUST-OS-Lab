@@ -35,6 +35,14 @@ ssize_t sys_user_print(const char* buf, size_t n) {
 ssize_t sys_user_exit(uint64 code) {
   sprint("User exit with code:%d.\n", code);
   // reclaim the current process, and reschedule. added @lab3_1
+  if (current->parent != NULL && current->parent->status == BLOCKED) {
+    if (current->parent->wait_pid == -1) {
+      insert_to_ready_queue(current->parent);
+    }
+    else if (current->parent->wait_pid == current->pid) {
+      insert_to_ready_queue(current->parent);
+    }
+  }
   free_process( current );
   schedule();
   return 0;
@@ -218,6 +226,28 @@ int sys_user_exec(char *pathva) {
   return do_exec(pathpa);
 }
 
+extern process procs[NPROC]; // 进程表声明
+extern process* ready_queue_head; // 就绪队列头指针声明
+int sys_user_wait(int pid) {
+  if (pid == -1) {
+    current->wait_pid = -1;
+    current->status = BLOCKED;
+    schedule();
+    return current->wait_pid;
+  }
+  else if (pid > 0) {
+    if (current != procs[pid].parent) {
+      return -1;
+    }
+    current->status = BLOCKED;
+    current->wait_pid = pid;
+    schedule();
+    return pid;
+  }
+  else 
+    return -1;
+}
+
 //
 // [a0]: the syscall number; [a1] ... [a7]: arguments to the syscalls.
 // returns the code of success, (e.g., 0 means success, fail for otherwise)
@@ -268,6 +298,8 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
       return sys_user_unlink((char *)a1);
     case SYS_user_exec:
       return sys_user_exec((char *)a1);
+    case SYS_user_wait:
+      return sys_user_wait(a1);
     default:
       panic("Unknown syscall %ld \n", a0);
   }

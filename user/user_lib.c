@@ -172,3 +172,8 @@ int close(int fd) {
 int exec(const char *path) {
   return do_user_call(SYS_user_exec, (uint64)path, 0, 0, 0, 0, 0, 0);
 }
+
+// ADD:ÈÚºÏlab3_chanllenge1
+int wait(int pid) {
+  return do_user_call(SYS_user_wait, pid, 0, 0, 0, 0, 0, 0);
+}

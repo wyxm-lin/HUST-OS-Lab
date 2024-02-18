@@ -93,6 +93,9 @@ typedef struct process_t {
 
   // file system. added @lab4_1
   proc_file_management *pfiles;
+
+  // ADD: 融合lab3_chanllenge1
+  uint64 wait_pid; // 需要等待的子进程pid
 }process;
 
 // switch to run user app

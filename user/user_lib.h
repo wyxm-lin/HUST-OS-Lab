@@ -36,4 +36,6 @@ int unlink_u(const char *fn);
 // ADD
 int exec(const char *path);
 
+// ADD:ÈÚºÏlab3_chanllenge1
+int wait(int pid);
 #endif

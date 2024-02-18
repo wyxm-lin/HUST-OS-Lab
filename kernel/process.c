@@ -163,6 +163,9 @@ process *alloc_process()
     procs[i].pfiles = init_proc_file_management();
     sprint("in alloc_proc. build proc_file_management successfully.\n");
 
+    procs[i].wait_pid = 0; // 没有需要等待的子进程
+    procs[i].parent = NULL; // 设置为没有父进程
+
     // return after initialization.
     return &procs[i];
 }
@@ -191,7 +194,8 @@ int free_process(process *proc)
 int do_fork(process *parent)
 {
     sprint("will fork a child from parent %d.\n", parent->pid);
-    process *child = alloc_process();
+    process *child = alloc_process(); // 先使用alloc_process创建一个进程
+    // 段映射
     for (int i = 0; i < parent->total_mapped_region; i++)
     {
         // browse parent's vm space, and copy its trapframe and data segments,
@@ -260,9 +264,31 @@ int do_fork(process *parent)
             child->mapped_info[child->total_mapped_region].seg_type = CODE_SEGMENT;
             child->total_mapped_region++; // TODO: don't understand this line
             break;
+        case DATA_SEGMENT: // DONE:
+            child->mapped_info[child->total_mapped_region].seg_type = DATA_SEGMENT;
+            child->mapped_info[child->total_mapped_region].va = parent->mapped_info[i].va;
+            child->mapped_info[child->total_mapped_region].npages = parent->mapped_info[i].npages;
+            for (int i = 0; i < child->mapped_info[child->total_mapped_region].npages; i++) {
+            uint64 child_pa = (uint64)alloc_page();
+            memcpy((void*)child_pa, (void*)lookup_pa(parent->pagetable, child->mapped_info[child->total_mapped_region].va + i * PGSIZE), PGSIZE);
+            map_pages(child->pagetable, child->mapped_info[child->total_mapped_region].va + i * PGSIZE, 1, child_pa, prot_to_type(PROT_WRITE | PROT_READ, 1));
+            }
+            child->total_mapped_region++; // ANNOTATE: 需要加1
+            break;        
         }
     }
 
+    // pfiles复制
+    child->pfiles->nfiles = parent->pfiles->nfiles;
+    child->pfiles->cwd = parent->pfiles->cwd;
+    for (int i = 0; i < MAX_FILES; i++) {
+        child->pfiles->opened_files[i] = parent->pfiles->opened_files[i];
+        if (child->pfiles->opened_files[i].f_dentry != NULL)
+            child->pfiles->opened_files[i].f_dentry->d_ref++;
+        // sprint("the address is %0x\n", child->pfiles->opened_files[i].f_dentry);
+    }
+
+    // 状态信息设置
     child->status = READY;
     child->trapframe->regs.a0 = 0;
     child->parent = parent;
