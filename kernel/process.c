@@ -138,6 +138,8 @@ process *alloc_process()
     // we assume that the size of usertrap.S is smaller than a page.
     user_vm_map((pagetable_t)procs[i].pagetable, (uint64)trap_sec_start, PGSIZE,
                 (uint64)trap_sec_start, prot_to_type(PROT_READ | PROT_EXEC, 0));
+    // comment: 非alloc页面
+    // sprint("lgm:trap_sec_start is %0x\n", trap_sec_start);
     procs[i].mapped_info[SYSTEM_SEGMENT].va = (uint64)trap_sec_start;
     procs[i].mapped_info[SYSTEM_SEGMENT].npages = 1;
     procs[i].mapped_info[SYSTEM_SEGMENT].seg_type = SYSTEM_SEGMENT;
@@ -270,36 +272,47 @@ int do_fork(process *parent)
 }
 
 // 根据alloc_process函数改写
-static void exec_clean_free_pagetable(uint64 pagetable) {
-    int cnt = PGSIZE / sizeof(pte_t);
+static void exec_clean_pagetable(pagetable_t page_dir) { // comment: pagetable_t是uint64* 其加法遵循指针加法
+    int cnt = PGSIZE / sizeof(pte_t); // pte_t是int型
     for (int i = 0; i < cnt; i++) {
-        pte_t* pte1 = (pte_t *)(pagetable + i * sizeof(pte_t));
-        if (*pte1 & PTE_V) { // 一级有效
-            uint64 pagetable1 = PTE2PA(*pte1);
-            for (int j = 0; j < cnt; j++ ) {
-                pte_t* pte2 = (pte_t *)(pagetable1 + j * sizeof(pte_t));
-                if (*pte2 & PTE_V) { // 二级有效
-                    uint64 pagetable2 = PTE2PA(*pte2);
+        pte_t* pte1 = page_dir + i;
+        if (*pte1 & PTE_V) {
+            pagetable_t page_mid_dir = (pagetable_t)PTE2PA(*pte1);
+            for (int j = 0; j < cnt; j++) {
+                pte_t* pte2 = page_mid_dir + j;
+                if (*pte2 & PTE_V) {
+                    pagetable_t page_low_dir = (pagetable_t)PTE2PA(*pte2);
                     for (int k = 0; k < cnt; k++) {
-                        pte_t* pte3 = (pte_t *)(pagetable2 + k * sizeof(pte_t));
-                        if (*pte3 & PTE_V) { // 三级有效
+                        pte_t* pte3 = page_low_dir + k;
+                        if (*pte3 & PTE_V) {
                             uint64 page = PTE2PA(*pte3);
-                            free_page((void *)page);
+                            // sprint("lgm:the pa is %0x\n", page);
+                            // if (free_mem_start_addr <= page && page < free_mem_end_addr) {
+                            //     free_page((void *)page); // 释放物理页
+                            //     (*pte3) &= ~PTE_V; // 将页表项置为无效
+                            // } 
+                            free_page((void *)page); // 释放物理页(注意：修改了原先的free_page函数)
+                            (*pte3) &= ~PTE_V; // 将页表项置为无效
                         }
                     }
-                    free_page((void *)pagetable2);
+                    // sprint("lgm:page_low_dir is %0x\n", page_low_dir);
+                    free_page((void *)page_low_dir);
                 }
             }
-            free_page((void *)pagetable1);
+            // sprint("lgm:page_mid_dir is %0x\n", page_mid_dir);
+            free_page((void *)page_mid_dir);
         }
     }
-    free_page((void *)pagetable);
+    // sprint("lgm:page_dir is %0x\n", page_dir);
+    free_page((void *)page_dir);
+    // sprint("exec_clean_pagetable end\n");
+    // panic("stop");
 }
 
 void exec_clean(process* p) {
-    // FIXME 以下函数有误
-    // exec_clean_free_pagetable((uint64)p->pagetable);
-
+    // 释放原先内存
+    exec_clean_pagetable(p->pagetable);
+    
     // init proc[i]'s vm space
     p->trapframe = (trapframe *)alloc_page(); // trapframe, used to save context 
     memset(p->trapframe, 0, sizeof(trapframe));

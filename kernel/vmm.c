@@ -59,7 +59,7 @@ pte_t *page_walk(pagetable_t page_dir, uint64 va, int alloc) {
   for (int level = 2; level > 0; level--) {
     // macro "PX" gets the PTE index in page table of current level
     // "pte" points to the entry of current level
-    pte_t *pte = pt + PX(level, va);
+    pte_t *pte = pt + PX(level, va); // comment: pt是uint64* 此处加法是指针的移动
 
     // now, we need to know if above pte is valid (established mapping to a phyiscal page)
     // or not.

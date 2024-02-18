@@ -36,9 +36,14 @@ static void create_freepage_list(uint64 start, uint64 end) {
 // place a physical page at *pa to the free list of g_free_mem_list (to reclaim the page)
 //
 void free_page(void *pa) {
-  if (((uint64)pa % PGSIZE) != 0 || (uint64)pa < free_mem_start_addr || (uint64)pa >= free_mem_end_addr)
+  // sprint("lgm:in function free_page: before panic: pa is %lx\n", pa);
+  if (((uint64)pa % PGSIZE) != 0 || (uint64)pa < free_mem_start_addr || (uint64)pa >= free_mem_end_addr) {
+    if ((uint64)pa < free_mem_start_addr || (uint64)pa >= free_mem_end_addr) {
+      return; // Ö±½Ó·µ»Ø 
+    }
     panic("free_page 0x%lx \n", pa);
-
+  }
+  // sprint("lgm:in function free_page: after panic: pa is %lx\n", pa);
   // insert a physical page to g_free_mem_list
   list_node *n = (list_node *)pa;
   n->next = g_free_mem_list.next;
