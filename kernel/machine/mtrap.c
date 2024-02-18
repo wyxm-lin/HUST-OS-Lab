@@ -12,8 +12,8 @@ static void handle_illegal_instruction() { panic("Illegal instruction!"); }
 
 // ADD
 static void handle_misaligned_load() { 
-  return; 
-  //panic("Misaligned Load!"); 
+  // return; 
+  panic("Misaligned Load!"); 
 }
 
 static void handle_misaligned_store() { 
@@ -36,7 +36,7 @@ static void handle_timer() {
 //
 void handle_mtrap() {
   uint64 mcause = read_csr(mcause);
-  sprint("lgm:mepc=%p mtval=%p mcause=%p\n", read_csr(mepc), read_csr(mtval), mcause);
+  // sprint("lgm:mepc=%p mtval=%p mcause=%p\n", read_csr(mepc), read_csr(mtval), mcause);
   switch (mcause) {
     case CAUSE_MTIMER:
       handle_timer();
