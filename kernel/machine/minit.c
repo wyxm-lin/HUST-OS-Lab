@@ -38,8 +38,9 @@ riscv_regs g_itrframe;
 // in Intel series CPUs. it records the details of devices and memory of the
 // platform simulated using Spike.
 //
+// DEBUG:
 void init_dtb(uint64 dtb) { // TODO 只有一个内核在启动时才需要init_dtb
-  sprint("lgm: entry function init_dtb\n"); // REMOVE: remove the line 
+  // sprint("lgm: entry function init_dtb\n"); // REMOVE: remove the line 
   // defined in spike_interface/spike_htif.c, enabling Host-Target InterFace (HTIF)
   query_htif(dtb);
   if (htif) sprint("HTIF is available!\r\n"); // comment: init_dtb函数于m_start函数中调用(会打印出两次) FIXME:仓库doc中是否只是截取了一部分，doc上只打印了一遍
@@ -81,6 +82,8 @@ static void delegate_traps() {
 // enabling timer interrupt (irq) in Machine mode. added @lab1_3
 //
 void timerinit(uintptr_t hartid) {
+  // DEBUG
+  // sprint("lgm:entry function timerinit, the hartid is %d\n", hartid); // REMOVE: remove the line
   // fire timer irq after TIMER_INTERVAL from now.
   *(uint64*)CLINT_MTIMECMP(hartid) = *(uint64*)CLINT_MTIME + TIMER_INTERVAL;
 
@@ -91,39 +94,45 @@ void timerinit(uintptr_t hartid) {
 //
 // m_start: machine mode C entry point.
 //
+static int HasInited = 0;
 void m_start(uintptr_t hartid, uintptr_t dtb) {
   // init the spike file interface (stdin,stdout,stderr)
   // functions with "spike_" prefix are all defined in codes under spike_interface/,
   // sprint is also defined in spike_interface/spike_utils.c
-  spike_file_init();
+  if (HasInited == 0)
+    spike_file_init();
   sprint("In m_start, hartid:%d\n", hartid);
 
-  // init HTIF (Host-Target InterFace) and memory by using the Device Table Blob (DTB)
-  // init_dtb() is defined above.
-  init_dtb(dtb);
+  if (HasInited == 0) {
+    HasInited = 1;
+    // spike_file_init(); // comment: 此处的接口只能初始化一次(移动到上面了)
+    // init HTIF (Host-Target InterFace) and memory by using the Device Table Blob (DTB)
+    // init_dtb() is defined above.
+    init_dtb(dtb); // comment:此处只能初始化一次
 
-  // save the address of trap frame for interrupt in M mode to "mscratch". added @lab1_2
-  write_csr(mscratch, &g_itrframe); // comment: g_itrframe应该专属一个核
+    // save the address of trap frame for interrupt in M mode to "mscratch". added @lab1_2
+    write_csr(mscratch, &g_itrframe);
 
-  // set previous privilege mode to S (Supervisor), and will enter S mode after 'mret'
-  // write_csr is a macro defined in kernel/riscv.h
-  write_csr(mstatus, ((read_csr(mstatus) & ~MSTATUS_MPP_MASK) | MSTATUS_MPP_S));
+    // set previous privilege mode to S (Supervisor), and will enter S mode after 'mret'
+    // write_csr is a macro defined in kernel/riscv.h
+    write_csr(mstatus, ((read_csr(mstatus) & ~MSTATUS_MPP_MASK) | MSTATUS_MPP_S));
 
-  // set M Exception Program Counter to sstart, for mret (requires gcc -mcmodel=medany)
-  write_csr(mepc, (uint64)s_start);
+    // set M Exception Program Counter to sstart, for mret (requires gcc -mcmodel=medany)
+    write_csr(mepc, (uint64)s_start);
 
-  // setup trap handling vector for machine mode. added @lab1_2
-  write_csr(mtvec, (uint64)mtrapvec);
+    // setup trap handling vector for machine mode. added @lab1_2
+    write_csr(mtvec, (uint64)mtrapvec);
 
-  // enable machine-mode interrupts. added @lab1_3
-  write_csr(mstatus, read_csr(mstatus) | MSTATUS_MIE);
+    // enable machine-mode interrupts. added @lab1_3
+    write_csr(mstatus, read_csr(mstatus) | MSTATUS_MIE);
 
-  // delegate all interrupts and exceptions to supervisor mode.
-  // delegate_traps() is defined above.
-  delegate_traps();
+    // delegate all interrupts and exceptions to supervisor mode.
+    // delegate_traps() is defined above.
+    delegate_traps();
 
-  // also enables interrupt handling in supervisor mode. added @lab1_3
-  write_csr(sie, read_csr(sie) | SIE_SEIE | SIE_STIE | SIE_SSIE);
+    // also enables interrupt handling in supervisor mode. added @lab1_3
+    write_csr(sie, read_csr(sie) | SIE_SEIE | SIE_STIE | SIE_SSIE);
+  }
 
   // init timing. added @lab1_3
   timerinit(hartid);
