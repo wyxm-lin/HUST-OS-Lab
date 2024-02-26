@@ -13,6 +13,7 @@
 
 // process is a structure defined in kernel/process.h
 process user_app[NCPU]; // 一核一进程
+spinlock_t user_app_lock;
 
 //
 // load the elf, and construct a "process" (with only a trapframe).
@@ -21,20 +22,20 @@ process user_app[NCPU]; // 一核一进程
 void load_user_program(process *proc) {
   // USER_TRAP_FRAME is a physical address defined in kernel/config.h
   int hartid = read_tp();
-  // proc->trapframe = (trapframe *)(USER_TRAP_FRAME_BASE + hartid * 0x100000);
   if (hartid == 0) {
     proc->trapframe = (trapframe *)USER_TRAP_FRAME_ZERO;
-  } else {
-    proc->trapframe = (trapframe *)USER_TRAP_FRAME_ONE;
+    memset(proc->trapframe, 0, sizeof(trapframe));
+    proc->kstack = USER_KSTACK_ZERO;
+    proc->trapframe->regs.sp = USER_STACK_ZERO;
+    proc->trapframe->regs.tp = hartid; // comment:我真的...
   }
-  memset(proc->trapframe, 0, sizeof(trapframe));
-  // USER_KSTACK is also a physical address defined in kernel/config.h
-  proc->kstack = USER_KSTACK(hartid);
-  proc->trapframe->regs.sp = USER_STACK(hartid);
-
-  // 设置所属核(其实没有必要)
-  proc->cpuid = read_tp();
-
+  else {
+    proc->trapframe = (trapframe *)USER_TRAP_FRAME_ONE;
+    memset(proc->trapframe, 0, sizeof(trapframe));
+    proc->kstack = USER_KSTACK_ONE;
+    proc->trapframe->regs.sp = USER_STACK_ONE;
+    proc->trapframe->regs.tp = hartid; // comment:我真的...
+  }
   // load_bincode_from_host_elf() is defined in kernel/elf.c
   load_bincode_from_host_elf(proc);
 }
@@ -43,8 +44,7 @@ void load_user_program(process *proc) {
 // s_start: S-mode entry point of riscv-pke OS kernel.
 //
 
-// 设置同步切换到user
-static int count = 0; // 初始化为0
+static int BootCount = 0; // 初始化为0
 extern spinlock_t BootLock; // 外部变量
 
 int s_start(void) {
@@ -61,13 +61,14 @@ int s_start(void) {
   load_user_program(&user_app[hartid]);
 
   spinlock_unlock(&BootLock); // 释放锁
-  sync_barrier(&count, NCPU); // comment:添加同步点
+  sync_barrier(&BootCount, NCPU); // comment:添加同步点
 
   sprint("hartid = %d: Switch to user mode...\n", hartid); // comment:修改打印信息 将cpu的id打印出
 
   // panic("stop");
 
   // switch_to() is defined in kernel/process.c
+  spinlock_lock(&user_app_lock);
   switch_to(&user_app[hartid]);
 
   // we should never reach here.

@@ -1,0 +1,7 @@
+离奇bug
+1、先执行核0，再执行核1
+2、进入系统调用时，current[read_tp()]的值反复变化，甚至为NULL，过不了assert
+3、多写几个sprint，程序可以过assert
+4、尝试上锁，无用
+
+问题所在：tramframe没有存储tp寄存器(qwq)

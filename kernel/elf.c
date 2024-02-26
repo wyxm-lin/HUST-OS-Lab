@@ -119,14 +119,15 @@ void load_bincode_from_host_elf(process *p) {
     if (!argc) panic("You need to specify the application program!\n");
   }
 
-  sprint("hartid = %d: Application: %s\n", p->cpuid, arg_bug_msg.argv[p->cpuid]); // comment:修改打印信息 将cpu的id打印出
+  int hartid = read_tp();
+  sprint("hartid = %d: Application: %s\n", hartid, arg_bug_msg.argv[hartid]); // comment:修改打印信息 将cpu的id打印出
 
   //elf loading. elf_ctx is defined in kernel/elf.h, used to track the loading process.
   elf_ctx elfloader;
   // elf_info is defined above, used to tie the elf file and its corresponding process.
   elf_info info;
 
-  info.f = spike_file_open(arg_bug_msg.argv[p->cpuid], O_RDONLY, 0);
+  info.f = spike_file_open(arg_bug_msg.argv[hartid], O_RDONLY, 0);
   info.p = p;
   // IS_ERR_VALUE is a macro defined in spike_interface/spike_htif.h
   if (IS_ERR_VALUE(info.f)) panic("Fail on openning the input application program.\n");
@@ -144,5 +145,5 @@ void load_bincode_from_host_elf(process *p) {
   // close the host spike file
   spike_file_close( info.f );
 
-  sprint("hartid = %d: Application program entry point (virtual address): 0x%lx\n", p->cpuid, p->trapframe->epc); // comment:修改打印信息 将cpu的id打印出
+  sprint("hartid = %d: Application program entry point (virtual address): 0x%lx\n", hartid, p->trapframe->epc); // comment:修改打印信息 将cpu的id打印出
 }
