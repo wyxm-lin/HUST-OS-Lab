@@ -55,6 +55,7 @@ void smode_trap_handler(void) {
   int hartid = read_tp();
   // DEBUG
   if ((hartid != 0 && hartid != 1) || current[hartid] == NULL) {
+    sprint("smode_trap_handler(): hartid=%d, %p, %d\n", hartid, current[hartid], current[hartid] == NULL ? 1:0);
     if (hartid != 0 && hartid != 1) {
       sprint("smode_trap_handler(): hartid=%d\n", hartid);
     }
