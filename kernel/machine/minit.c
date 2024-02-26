@@ -38,14 +38,15 @@ riscv_regs g_itrframe;
 // in Intel series CPUs. it records the details of devices and memory of the
 // platform simulated using Spike.
 //
-void init_dtb(uint64 dtb) {
+void init_dtb(uint64 dtb) { // TODO 只有一个内核在启动时才需要init_dtb
+  sprint("lgm: entry function init_dtb\n"); // REMOVE: remove the line 
   // defined in spike_interface/spike_htif.c, enabling Host-Target InterFace (HTIF)
   query_htif(dtb);
-  if (htif) sprint("HTIF is available!\r\n");
+  if (htif) sprint("HTIF is available!\r\n"); // comment: init_dtb函数于m_start函数中调用(会打印出两次) FIXME:仓库doc中是否只是截取了一部分，doc上只打印了一遍
 
   // defined in spike_interface/spike_memory.c, obtain information about emulated memory
   query_mem(dtb);
-  sprint("(Emulated) memory size: %ld MB\n", g_mem_size >> 20);
+  sprint("(Emulated) memory size: %ld MB\n", g_mem_size >> 20); // comment: 同上
 }
 
 //
@@ -102,7 +103,7 @@ void m_start(uintptr_t hartid, uintptr_t dtb) {
   init_dtb(dtb);
 
   // save the address of trap frame for interrupt in M mode to "mscratch". added @lab1_2
-  write_csr(mscratch, &g_itrframe);
+  write_csr(mscratch, &g_itrframe); // comment: g_itrframe应该专属一个核
 
   // set previous privilege mode to S (Supervisor), and will enter S mode after 'mret'
   // write_csr is a macro defined in kernel/riscv.h

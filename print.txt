@@ -1,0 +1,34 @@
+linking  obj/util.a ...
+Util lib has been build into "obj/util.a"
+linking  obj/spike_interface.a ...
+Spike lib has been build into "obj/spike_interface.a"
+linking obj/riscv-pke ...
+PKE core has been built into "obj/riscv-pke"
+linking obj/app0 ...
+User app has been built into "obj/app0"
+linking obj/app1 ...
+User app has been built into "obj/app1"
+********************HUST PKE********************
+spike -p2 obj/riscv-pke obj/app0 obj/app1
+In m_start, hartid:0
+lgm: entry function init_dtb
+In m_start, hartid:1
+lgm: entry function init_dtb
+HTIF is available!
+HTIF is available!
+(Emulated) memory size: 2048 MB
+hartid = ?: Enter supervisor mode...
+hartid = ?: Application: obj/app0
+hartid = ?: Application program entry point (virtual address): 0x0000000081000000
+hartid = ?: Switch to user mode...
+(Emulated) memory size: 2048 MB
+hartid = ?: Enter supervisor mode...
+hartid = ?: Application: obj/app0
+hartid = ?: Application program entry point (virtual address): 0x0000000081000000
+hartid = ?: Switch to user mode...
+hartid = ?: >>> app0 is expected to be executed by hart0
+
+hartid = ?: >>> app0 is expected to be executed by hart0
+
+hartid = ?: shutdown with code:0.
+System is shutting down with exit code 0.
