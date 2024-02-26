@@ -99,7 +99,7 @@ int s_start(void) {
 
   sprint("hartid = ?: Switch to user mode...\n");
   
-  uint64 hartid = 0;
+  uint64 hartid = 0; // comment: added by teaching assistant
   
   vm_alloc_stage[hartid] = 1;
   // switch_to() is defined in kernel/process.c
