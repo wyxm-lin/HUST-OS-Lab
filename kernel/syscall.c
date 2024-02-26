@@ -17,7 +17,7 @@
 // implement the SYS_user_print syscall
 //
 ssize_t sys_user_print(const char* buf, size_t n) {
-  sprint("hartid = ?: %s\n", buf);
+  sprint("hartid = ?: %s\n", buf); // comment:修改打印信息 将cpu的id打印出
   return 0;
 }
 
@@ -25,10 +25,10 @@ ssize_t sys_user_print(const char* buf, size_t n) {
 // implement the SYS_user_exit syscall
 //
 ssize_t sys_user_exit(uint64 code) {
-  sprint("hartid = ?: User exit with code:%d.\n", code);
+  sprint("hartid = ?: User exit with code:%d.\n", code); // comment:修改打印信息 将cpu的id打印出
   // in lab1, PKE considers only one app (one process). 
   // therefore, shutdown the system when the app calls exit()
-  sprint("hartid = ?: shutdown with code:%d.\n", code);
+  sprint("hartid = ?: shutdown with code:%d.\n", code); // comment:修改打印信息 将cpu的id打印出
   shutdown(code);
 }
 
