@@ -23,7 +23,7 @@ static void handle_syscall(trapframe *tf) {
   // IMPORTANT: return value should be returned to user app, or else, you will encounter
   // problems in later experiments!
   // panic( "call do_syscall to accomplish the syscall and lab1_1 here.\n" );
-  assert(!do_syscall(tf->regs.a0, tf->regs.a1, tf->regs.a2, tf->regs.a3, tf->regs.a4, tf->regs.a5, tf->regs.a6, tf->regs.a7));
+  tf->regs.a0 = do_syscall(tf->regs.a0, tf->regs.a1, tf->regs.a2, tf->regs.a3, tf->regs.a4, tf->regs.a5, tf->regs.a6, tf->regs.a7);
 }
 
 //
@@ -51,21 +51,25 @@ void smode_trap_handler(void) {
   // make sure we are in User mode before entering the trap handling.
   // we will consider other previous case in lab1_3 (interrupt).
   if ((read_csr(sstatus) & SSTATUS_SPP) != 0) panic("usertrap: not from user mode");
-  // sprint("stop hartid is %0x, and casuse is %p\n", read_tp(), read_csr(scause));
-  // panic("stop hartid is %0x, and casuse is %p", read_tp(), read_csr(scause));
-  // uint64 Cause = read_csr(scause);
-  // sprint("smode_trap_handler(): hartid=%d, scause=%p\n", read_tp(), Cause);
+
   int hartid = read_tp();
   // DEBUG
   if ((hartid != 0 && hartid != 1) || current[hartid] == NULL) {
-    // sprint("come here");
-    sprint("smode_trap_handler(): hartid=%d\n", hartid);
-    sprint("lgm: %p\n", current[hartid]);
-    if (current[hartid] == NULL) {
-      sprint("lgm: null\n");
+    if (hartid != 0 && hartid != 1) {
+      sprint("smode_trap_handler(): hartid=%d\n", hartid);
     }
-    panic("usertrap: no process, %0x", read_tp());
-  }// sprint("smode_trap_handler(): hartid=%d\n", hartid);
+    else if (current[hartid] == NULL) {
+      sprint("enter the else if statement\n");
+      sprint("smode_trap_handler(): hartid=%d\n", hartid);
+      sprint("lgm: %0x\n", current[hartid]);
+    }
+    else {
+      panic("no else");
+      // sprint("smode_trap_handler(): hartid=%d\n", hartid);
+      // sprint("lgm: not null\n");
+    }
+    panic("stop");
+  }
   assert(current[hartid]);
   sprint("lgm: not null\n");
   // panic("stop");
