@@ -94,8 +94,11 @@ static size_t parse_args(arg_buf *arg_bug_msg) {
   uint64 *pk_argv = &arg_bug_msg->buf[1];
 
   int arg = 1;  // skip the PKE OS kernel string, leave behind only the application name
-  for (size_t i = 0; arg + i < pk_argc; i++)
+  for (size_t i = 0; arg + i < pk_argc; i++) {
     arg_bug_msg->argv[i] = (char *)(uintptr_t)pk_argv[arg + i];
+    // DEBUG
+    // sprint("lgm:arg_bug_msg->argv[%d] = %s\n", i, arg_bug_msg->argv[i]); // 此处处理命令行数据 包含了app0和app1
+  }
 
   //returns the number of strings after PKE kernel in command line
   return pk_argc - arg;
@@ -104,21 +107,26 @@ static size_t parse_args(arg_buf *arg_bug_msg) {
 //
 // load the elf of user application, by using the spike file interface.
 //
+
+static int hasParsed = 0;
+static arg_buf arg_bug_msg;
 void load_bincode_from_host_elf(process *p) {
-  arg_buf arg_bug_msg;
-
+  
   // retrieve command line arguements
-  size_t argc = parse_args(&arg_bug_msg);
-  if (!argc) panic("You need to specify the application program!\n");
+  if (hasParsed == 0) {
+    hasParsed = 1;
+    size_t argc = parse_args(&arg_bug_msg);
+    if (!argc) panic("You need to specify the application program!\n");
+  }
 
-  sprint("hartid = ?: Application: %s\n", arg_bug_msg.argv[0]); // comment:修改打印信息 将cpu的id打印出
+  sprint("hartid = %d: Application: %s\n", p->cpuid, arg_bug_msg.argv[p->cpuid]); // comment:修改打印信息 将cpu的id打印出
 
   //elf loading. elf_ctx is defined in kernel/elf.h, used to track the loading process.
   elf_ctx elfloader;
   // elf_info is defined above, used to tie the elf file and its corresponding process.
   elf_info info;
 
-  info.f = spike_file_open(arg_bug_msg.argv[0], O_RDONLY, 0);
+  info.f = spike_file_open(arg_bug_msg.argv[p->cpuid], O_RDONLY, 0);
   info.p = p;
   // IS_ERR_VALUE is a macro defined in spike_interface/spike_htif.h
   if (IS_ERR_VALUE(info.f)) panic("Fail on openning the input application program.\n");
@@ -136,5 +144,5 @@ void load_bincode_from_host_elf(process *p) {
   // close the host spike file
   spike_file_close( info.f );
 
-  sprint("hartid = ?: Application program entry point (virtual address): 0x%lx\n", p->trapframe->epc); // comment:修改打印信息 将cpu的id打印出
+  sprint("hartid = %d: Application program entry point (virtual address): 0x%lx\n", p->cpuid, p->trapframe->epc); // comment:修改打印信息 将cpu的id打印出
 }

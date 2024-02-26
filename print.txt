@@ -10,9 +10,14 @@ linking obj/app1 ...
 User app has been built into "obj/app1"
 ********************HUST PKE********************
 spike -p2 obj/riscv-pke obj/app0 obj/app1
+In m_start, hartid:0
+In m_start, hartid:1
 HTIF is available!
 (Emulated) memory size: 2048 MB
+lgm: in function s_start, the hartid is 0
 hartid = ?: Enter supervisor mode...
+lgm:arg_bug_msg->argv[0] = obj/app0
+lgm:arg_bug_msg->argv[1] = obj/app1
 hartid = ?: Application: obj/app0
 hartid = ?: Application program entry point (virtual address): 0x0000000081000000
 hartid = ?: Switch to user mode...
