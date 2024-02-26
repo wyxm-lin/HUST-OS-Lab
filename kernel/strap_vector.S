@@ -16,7 +16,7 @@ trap_sec_start:
 .globl smode_trap_vector
 .align 4
 smode_trap_vector:
-    # swap a0 and sscratch, so that points a0 to the trapframe of current process
+    # swap a0 and sscratch, so that points a0 to the trapframe of current process 交换a0与sscratch寄存器的值
     csrrw a0, sscratch, a0
 
     # save the context (user registers) of current process in its trapframe.
@@ -28,8 +28,8 @@ smode_trap_vector:
 
     # come back to save a0 register before entering trap handling in trapframe
     # [t0]=[sscratch]
-    csrr t0, sscratch
-    sd t0, 72(a0)
+    csrr t0, sscratch # 此时t0寄存器的值就是原来的a0
+    sd t0, 72(a0) # 将trapframe中的a0设置为原来的a0的值
 
     # use the "user kernel" stack (whose pointer stored in p->trapframe->kernel_sp)
     ld sp, 248(a0)

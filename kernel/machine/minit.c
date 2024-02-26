@@ -29,7 +29,7 @@ extern uint64 htif;
 extern uint64 g_mem_size;
 // struct riscv_regs is define in kernel/riscv.h, and g_itrframe is used to save
 // registers when interrupt hapens in M mode. added @lab1_2
-riscv_regs g_itrframe;
+riscv_regs g_itrframe[NCPU];
 
 //
 // get the information of HTIF (calling interface) and the emulated memory by
@@ -121,7 +121,7 @@ void m_start(uintptr_t hartid, uintptr_t dtb) {
   }
 
   // save the address of trap frame for interrupt in M mode to "mscratch". added @lab1_2
-  write_csr(mscratch, &g_itrframe);
+  write_csr(mscratch, &g_itrframe[hartid]);
 
   // set previous privilege mode to S (Supervisor), and will enter S mode after 'mret'
   // write_csr is a macro defined in kernel/riscv.h

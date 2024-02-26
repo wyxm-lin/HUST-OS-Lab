@@ -20,13 +20,19 @@ process user_app[NCPU]; // 一核一进程
 //
 void load_user_program(process *proc) {
   // USER_TRAP_FRAME is a physical address defined in kernel/config.h
-  proc->trapframe = (trapframe *)USER_TRAP_FRAME;
+  int hartid = read_tp();
+  // proc->trapframe = (trapframe *)(USER_TRAP_FRAME_BASE + hartid * 0x100000);
+  if (hartid == 0) {
+    proc->trapframe = (trapframe *)USER_TRAP_FRAME_ZERO;
+  } else {
+    proc->trapframe = (trapframe *)USER_TRAP_FRAME_ONE;
+  }
   memset(proc->trapframe, 0, sizeof(trapframe));
   // USER_KSTACK is also a physical address defined in kernel/config.h
-  proc->kstack = USER_KSTACK;
-  proc->trapframe->regs.sp = USER_STACK;
+  proc->kstack = USER_KSTACK(hartid);
+  proc->trapframe->regs.sp = USER_STACK(hartid);
 
-  // 设置所属核
+  // 设置所属核(其实没有必要)
   proc->cpuid = read_tp();
 
   // load_bincode_from_host_elf() is defined in kernel/elf.c
@@ -57,9 +63,10 @@ int s_start(void) {
   spinlock_unlock(&BootLock); // 释放锁
   sync_barrier(&count, NCPU); // comment:添加同步点
 
-  panic("stop");
-
   sprint("hartid = %d: Switch to user mode...\n", hartid); // comment:修改打印信息 将cpu的id打印出
+
+  // panic("stop");
+
   // switch_to() is defined in kernel/process.c
   switch_to(&user_app[hartid]);
 
