@@ -63,6 +63,9 @@ SPIKE_INF_LIB   := $(OBJ_DIR)/spike_interface.a
 
 
 #---------------------	user   -----------------------
+USER_LDS0 		:= user/app_alloc0.lds
+USER_LDS1 		:= user/app_alloc1.lds
+
 USER_CPP0 		:= user/app_alloc0.c user/user_lib.c
 USER_CPP1 		:= user/app_alloc1.c user/user_lib.c
 
@@ -105,14 +108,14 @@ $(KERNEL_TARGET): $(OBJ_DIR) $(UTIL_LIB) $(SPIKE_INF_LIB) $(KERNEL_OBJS) $(KERNE
 	@$(COMPILE) $(KERNEL_OBJS) $(UTIL_LIB) $(SPIKE_INF_LIB) -o $@ -T $(KERNEL_LDS)
 	@echo "PKE core has been built into" \"$@\"
 
-$(USER_TARGET0): $(OBJ_DIR) $(UTIL_LIB) $(USER_OBJ0)
+$(USER_TARGET0): $(OBJ_DIR) $(UTIL_LIB) $(USER_OBJ0) $(USER_LDS0) $(USER_LDS0)
 	@echo "linking" $@	...	
-	@$(COMPILE) --entry=main $(USER_OBJ0) $(UTIL_LIB) -o $@
+	@$(COMPILE) --entry=main $(USER_OBJ0) $(UTIL_LIB) -o $@ -T $(USER_LDS0)
 	@echo "User app has been built into" \"$@\"
 	
-$(USER_TARGET1): $(OBJ_DIR) $(UTIL_LIB) $(USER_OBJ1)
+$(USER_TARGET1): $(OBJ_DIR) $(UTIL_LIB) $(USER_OBJ1) $(USER_LDS1)
 	@echo "linking" $@	...	
-	@$(COMPILE) --entry=main $(USER_OBJ1) $(UTIL_LIB) -o $@
+	@$(COMPILE) --entry=main $(USER_OBJ1) $(UTIL_LIB) -o $@ -T $(USER_LDS1)
 	@echo "User app has been built into" \"$@\"
 
 -include $(wildcard $(OBJ_DIR)/*/*.d)
