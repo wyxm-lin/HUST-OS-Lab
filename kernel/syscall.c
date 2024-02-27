@@ -53,8 +53,8 @@ ssize_t sys_user_exit(uint64 code) {
 uint64 sys_user_allocate_page() {
   uint64 hartid = read_tp();
   void* pa = alloc_page();
-  uint64 va = g_ufree_page;
-  g_ufree_page += PGSIZE;
+  uint64 va = g_ufree_page[hartid];
+  g_ufree_page[hartid] += PGSIZE;
   user_vm_map((pagetable_t)current[hartid]->pagetable, va, PGSIZE, (uint64)pa,
          prot_to_type(PROT_WRITE | PROT_READ, 1));
   sprint("hartid = %lld: vaddr 0x%x is mapped to paddr 0x%x\n", hartid, va, pa);

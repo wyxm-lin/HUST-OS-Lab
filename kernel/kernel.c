@@ -42,7 +42,7 @@ void enable_paging() {
 void load_user_program(process *proc) {
   uint64 hartid = read_tp();
 
-  sprint("User application is loading.\n");
+  sprint("hartid = %lld: User application is loading.\n", hartid); // comment:根据doc输出修改此处
   // allocate a page to store the trapframe. alloc_page is defined in kernel/pmm.c. added @lab2_1
   proc->trapframe = (trapframe *)alloc_page();
   memset(proc->trapframe, 0, sizeof(trapframe));
@@ -106,7 +106,7 @@ int s_start(void) {
 
   // NOTE: 这俩语句 根据doc的输出 应该放这
   spinlock_unlock(&BootLock); // 释放锁
-  sync_barrier(&BootCount, NCPU); // comment: 设置同步点
+  
 
   // build the kernel page table
   if (KernVmmStatus == No) {
@@ -116,6 +116,7 @@ int s_start(void) {
   }
 
   // sprint("kernel page table is on \n"); // 此行输出delete(根据doc的输出判断)
+  sync_barrier(&BootCount, NCPU); // comment: 设置同步点
 
   // the application code (elf) is first loaded into memory, and then put into execution
   load_user_program(&user_app[hartid]);

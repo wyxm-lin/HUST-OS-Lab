@@ -34,17 +34,18 @@ static void handle_syscall(trapframe *tf) {
 
 //
 // global variable that store the recorded "ticks". added @lab1_3
-static uint64 g_ticks = 0;
+static uint64 g_ticks[NCPU] = { 0, 0 };
 //
 // added @lab1_3
 //
 void handle_mtimer_trap() {
-  sprint("Ticks %d\n", g_ticks);
+  uint64 hartid = read_tp();
+  sprint("Ticks %d\n", g_ticks[hartid]);
   // TODO (lab1_3): increase g_ticks to record this "tick", and then clear the "SIP"
   // field in sip register.
   // hint: use write_csr to disable the SIP_SSIP bit in sip.
   // panic( "lab1_3: increase g_ticks by one, and clear SIP field in sip register.\n" );
-  g_ticks ++;
+  g_ticks[hartid] ++;
   write_csr(sip, 0);
 }
 
