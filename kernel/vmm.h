@@ -19,7 +19,7 @@ uint64 lookup_pa(pagetable_t pagetable, uint64 va);
 
 /* --- kernel page table --- */
 // pointer to kernel page directory
-extern pagetable_t g_kernel_pagetable;
+extern pagetable_t g_kernel_pagetable[NCPU];
 
 void kern_vm_map(pagetable_t page_dir, uint64 va, uint64 pa, uint64 sz, int perm);
 

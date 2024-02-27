@@ -183,6 +183,19 @@ typedef struct riscv_regs_t {
 
 // following lines are added @lab2_1
 static inline void flush_tlb(void) { asm volatile("sfence.vma zero, zero"); }
+/*
+  from GPT:
+  对于 `sfence.vma` 指令，它并不需要显式地指定需要刷新的地址或长度。
+  相反，它是一种全局性的内存屏障（memory barrier），它确保在该指令之前的所有存储操作都在该指令之前完成，
+  并且在该指令之后的所有加载操作都不会重排到该指令之前。
+  这意味着，`sfence.vma` 指令会刷新所有存储操作对虚拟地址空间的影响。
+  它不需要特定的地址或长度信息，因为它的目的是确保存储操作的全局一致性，而不是针对特定的内存区域。
+  因此，当执行 `sfence.vma` 指令时，它会影响到所有存储操作，确保它们在该指令之前完成。
+  这种全局性的内存屏障适用于许多情况，例如在多核系统中确保共享数据的一致性，
+  或者在涉及设备 I/O 的情况下确保正确的操作顺序。
+*/
+// 故而每个核 都需要执行 sfence.vma指令
+
 #define PGSIZE 4096  // bytes per page
 #define PGSHIFT 12   // offset bits within a page
 

@@ -26,11 +26,12 @@ extern char trap_sec_start[];
 // turn on paging. added @lab2_1
 //
 void enable_paging() {
+  int hartid = read_tp();
   // write the pointer to kernel page (table) directory into the CSR of "satp".
-  write_csr(satp, MAKE_SATP(g_kernel_pagetable));
+  write_csr(satp, MAKE_SATP(g_kernel_pagetable[hartid]));
 
   // refresh tlb to invalidate its content.
-  flush_tlb();
+  flush_tlb(); // comment:tlb Translation Lookaside Buffer
 }
 
 //
@@ -92,7 +93,7 @@ int s_start(void) {
   write_csr(satp, 0);
 
   // init phisical memory manager
-  pmm_init();
+  pmm_init(); // comment: 此函数貌似只需要执行一次
 
   // build the kernel page table
   kern_vm_init();
