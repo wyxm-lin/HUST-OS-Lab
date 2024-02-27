@@ -13,4 +13,10 @@
 // the ending physical address that PKE observes. added @lab2_1
 #define PHYS_TOP (DRAM_BASE + PKE_MAX_ALLOWABLE_RAM)
 
+// comment:定义status枚举 以便各个文件使用
+typedef enum {
+    No,
+    Yes
+}MyStatus;
+
 #endif

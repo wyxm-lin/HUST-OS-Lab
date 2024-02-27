@@ -104,7 +104,7 @@ uint64 lookup_pa(pagetable_t pagetable, uint64 va) {
 extern char _etext[];
 
 // pointer to kernel page director
-pagetable_t g_kernel_pagetable[NCPU]; // NOTE:根据doc的输出，貌似多核共享一个内核页表
+pagetable_t g_kernel_pagetable; // NOTE:根据doc的输出，貌似多核共享一个内核页表
 
 //
 // maps virtual address [va, va+sz] to [pa, pa+sz] (for kernel).
@@ -118,7 +118,7 @@ void kern_vm_map(pagetable_t page_dir, uint64 va, uint64 pa, uint64 sz, int perm
 // kern_vm_init() constructs the kernel page table.
 //
 void kern_vm_init(void) {
-  int hartid = read_tp();
+  uint64 hartid = read_tp();
 
   // pagetable_t is defined in kernel/riscv.h. it's actually uint64*
   pagetable_t t_page_dir;
@@ -143,7 +143,7 @@ void kern_vm_init(void) {
 
   sprint("physical address of _etext is: 0x%lx\n", lookup_pa(t_page_dir, (uint64)_etext));
 
-  g_kernel_pagetable[hartid] = t_page_dir;
+  g_kernel_pagetable = t_page_dir;
 }
 
 /* --- user page table part --- */

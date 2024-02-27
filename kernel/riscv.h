@@ -195,6 +195,7 @@ static inline void flush_tlb(void) { asm volatile("sfence.vma zero, zero"); }
   或者在涉及设备 I/O 的情况下确保正确的操作顺序。
 */
 // 故而每个核 都需要执行 sfence.vma指令
+// 后发现：每个核共享一个内核页表，故而只需要一个核执行 sfence.vma指令即可
 
 #define PGSIZE 4096  // bytes per page
 #define PGSHIFT 12   // offset bits within a page

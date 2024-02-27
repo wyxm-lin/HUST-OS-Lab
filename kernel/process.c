@@ -31,7 +31,7 @@ uint64 g_ufree_page = USER_FREE_ADDRESS_START;
 // switch to a user-mode process
 //
 void switch_to(process* proc) {
-  int hartid = read_tp();
+  uint64 hartid = read_tp();
 
   assert(proc);
   current[hartid] = proc;

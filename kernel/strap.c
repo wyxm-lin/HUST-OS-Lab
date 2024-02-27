@@ -54,7 +54,7 @@ void handle_mtimer_trap() {
 // stval: the virtual address that causes pagefault when being accessed.
 //
 void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
-  int hartid = read_tp();
+  uint64 hartid = read_tp();
   sprint("handle_page_fault: %lx\n", stval);
   switch (mcause) {
     case CAUSE_STORE_PAGE_FAULT:
@@ -80,7 +80,7 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
 // in S-mode.
 //
 void smode_trap_handler(void) {
-  int hartid = read_tp();
+  uint64 hartid = read_tp();
   // make sure we are in User mode before entering the trap handling.
   // we will consider other previous case in lab1_3 (interrupt).
   if ((read_csr(sstatus) & SSTATUS_SPP) != 0) panic("usertrap: not from user mode");

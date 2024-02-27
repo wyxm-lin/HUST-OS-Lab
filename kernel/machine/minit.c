@@ -91,12 +91,8 @@ void timerinit(uintptr_t hartid) {
 //
 // m_start: machine mode C entry point.
 //
-typedef enum {
-  No,
-  Yes
-}BSPStatus;
-BSPStatus BspExist = No;
 
+MyStatus BspExist = No;
 spinlock_t BootLock; // 启动锁
 
 void m_start(uintptr_t hartid, uintptr_t dtb) {

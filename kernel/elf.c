@@ -116,18 +116,18 @@ static size_t parse_args(arg_buf *arg_bug_msg) {
 //
 // load the elf of user application, by using the spike file interface.
 //
-static int HasParsed = 0;
+static MyStatus HasParsed = No;
 static arg_buf arg_bug_msg;
 
 void load_bincode_from_host_elf(process *p) {
-  if (HasParsed == 0) {
-    HasParsed = 1;
+  if (HasParsed == No) {
+    HasParsed = Yes;
     size_t argc = parse_args(&arg_bug_msg);
     if (!argc) panic("You need to specify the application program!\n");
   }
   
-  int hartid = read_tp();
-  sprint("hartid = %d: Application: %s\n", hartid, arg_bug_msg.argv[hartid]);
+  uint64 hartid = read_tp();
+  sprint("hartid = %llu: Application: %s\n", hartid, arg_bug_msg.argv[hartid]);
 
   //elf loading. elf_ctx is defined in kernel/elf.h, used to track the loading process.
   elf_ctx elfloader;
@@ -152,5 +152,5 @@ void load_bincode_from_host_elf(process *p) {
   // close the host spike file
   spike_file_close( info.f );
 
-  sprint("hartid = %d: Application program entry point (virtual address): 0x%lx\n", hartid, p->trapframe->epc);
+  sprint("hartid = %llu: Application program entry point (virtual address): 0x%lx\n", hartid, p->trapframe->epc);
 }

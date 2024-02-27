@@ -12,6 +12,7 @@
 #include "spike_interface/spike_utils.h"
 #include "spike_interface/atomic.h"
 #include "sync_utils.h"
+#include "config.h"
 
 // process is a structure defined in kernel/process.h
 process user_app[NCPU];
@@ -26,9 +27,9 @@ extern char trap_sec_start[];
 // turn on paging. added @lab2_1
 //
 void enable_paging() {
-  int hartid = read_tp();
+  // int hartid = read_tp();
   // write the pointer to kernel page (table) directory into the CSR of "satp".
-  write_csr(satp, MAKE_SATP(g_kernel_pagetable[hartid]));
+  write_csr(satp, MAKE_SATP(g_kernel_pagetable));
 
   // refresh tlb to invalidate its content.
   flush_tlb(); // comment:tlb Translation Lookaside Buffer
@@ -39,7 +40,7 @@ void enable_paging() {
 // load_bincode_from_host_elf is defined in elf.c
 //
 void load_user_program(process *proc) {
-  int hartid = read_tp();
+  uint64 hartid = read_tp();
 
   sprint("User application is loading.\n");
   // allocate a page to store the trapframe. alloc_page is defined in kernel/pmm.c. added @lab2_1
@@ -56,8 +57,9 @@ void load_user_program(process *proc) {
 
   // USER_STACK_TOP = 0x7ffff000, defined in kernel/memlayout.h
   proc->trapframe->regs.sp = USER_STACK_TOP;  //virtual address of user stack top
+  proc->trapframe->regs.tp = hartid; // comment: qwq(牢记lab1_challenge3的教训)
 
-  sprint("hartid = %d: user frame 0x%lx, user stack 0x%lx, user kstack 0x%lx \n", hartid, proc->trapframe,
+  sprint("hartid = %llu: user frame 0x%lx, user stack 0x%lx, user kstack 0x%lx \n", hartid, proc->trapframe,
          proc->trapframe->regs.sp, proc->kstack);
 
   // load_bincode_from_host_elf() is defined in kernel/elf.c
@@ -83,39 +85,47 @@ void load_user_program(process *proc) {
 //
 static int BootCount = 0;
 extern spinlock_t BootLock;
+MyStatus KernPmmStatus = No;
+MyStatus KernVmmStatus = No;
+
 // NOTE:此函数有点特殊 里面有一个uint64 hartid 而且初始化为0，需要仔细判断是否需要修改
 int s_start(void) {
-  int myhartid = read_tp();
-  sprint("hartid = %d: Enter supervisor mode...\n", myhartid);
+  uint64 hartid = read_tp();
+  sprint("hartid = %llu: Enter supervisor mode...\n", hartid);
   // in the beginning, we use Bare mode (direct) memory mapping as in lab1.
   // but now, we are going to switch to the paging mode @lab2_1.
   // note, the code still works in Bare mode when calling pmm_init() and kern_vm_init().
   write_csr(satp, 0);
 
   // init phisical memory manager
-  pmm_init(); // comment: 此函数貌似只需要执行一次
+  if (KernPmmStatus == No) {
+       KernPmmStatus = Yes;
+       pmm_init(); // comment: 此函数貌似只需要执行一次
+  }
 
-  // build the kernel page table
-  kern_vm_init();
-
-  // now, switch to paging mode by turning on paging (SV39)
-  enable_paging();
-  // the code now formally works in paging mode, meaning the page table is now in use.
-  sprint("kernel page table is on \n");
-
-  // the application code (elf) is first loaded into memory, and then put into execution
-  load_user_program(&user_app[myhartid]);
-
-  spinlock_unlock(&BootLock);
+  // NOTE: 这俩语句 根据doc的输出 应该放这
+  spinlock_unlock(&BootLock); // 释放锁
   sync_barrier(&BootCount, NCPU); // comment: 设置同步点
 
-  sprint("hartid = %d: Switch to user mode...\n", myhartid);
+  // build the kernel page table
+  if (KernVmmStatus == No) {
+       KernVmmStatus = Yes;
+       kern_vm_init(); // comment: 此函数貌似只需要执行一次
+       enable_paging();
+  }
+
+  // sprint("kernel page table is on \n"); // 此行输出delete(根据doc的输出判断)
+
+  // the application code (elf) is first loaded into memory, and then put into execution
+  load_user_program(&user_app[hartid]);
+
+  sprint("hartid = %llu: Switch to user mode...\n", hartid);
   
-  uint64 hartid = 0; // comment: added by teaching assistant
+//   uint64 hartid = 0; // comment: added by teaching assistant
   
-  vm_alloc_stage[hartid] = 1;
+  vm_alloc_stage[hartid] = 1; // comment:标志位罢了
   // switch_to() is defined in kernel/process.c
-  switch_to(&user_app[myhartid]);
+  switch_to(&user_app[hartid]);
 
   // we should never reach here.
   return 0;
