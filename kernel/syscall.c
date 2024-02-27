@@ -36,12 +36,12 @@ static int ExitCount = 0;
 
 ssize_t sys_user_exit(uint64 code) {
   uint64 hartid = read_tp();
-  sprint("hartid = %d: User exit with code:%d.\n", read_tp(), code);
+  sprint("hartid = %lld: User exit with code:%d.\n", read_tp(), code);
   // in lab1, PKE considers only one app (one process). 
   // therefore, shutdown the system when the app calls exit()
   sync_barrier(&ExitCount, NCPU);
   if (hartid == 0) {
-    sprint("hartid = %d: shutdown with code:%d.\n", hartid, code);
+    sprint("hartid = %lld: shutdown with code:%d.\n", hartid, code);
     shutdown(code);
   }
   return 0; // never reach here
@@ -57,7 +57,7 @@ uint64 sys_user_allocate_page() {
   g_ufree_page += PGSIZE;
   user_vm_map((pagetable_t)current[hartid]->pagetable, va, PGSIZE, (uint64)pa,
          prot_to_type(PROT_WRITE | PROT_READ, 1));
-  sprint("hartid = %d: vaddr 0x%x is mapped to paddr 0x%x\n", hartid, va, pa);
+  sprint("hartid = %lld: vaddr 0x%x is mapped to paddr 0x%x\n", hartid, va, pa);
   return va;
 }
 

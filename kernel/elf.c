@@ -127,7 +127,7 @@ void load_bincode_from_host_elf(process *p) {
   }
   
   uint64 hartid = read_tp();
-  sprint("hartid = %llu: Application: %s\n", hartid, arg_bug_msg.argv[hartid]);
+  sprint("hartid = %lld: Application: %s\n", hartid, arg_bug_msg.argv[hartid]);
 
   //elf loading. elf_ctx is defined in kernel/elf.h, used to track the loading process.
   elf_ctx elfloader;
@@ -152,5 +152,5 @@ void load_bincode_from_host_elf(process *p) {
   // close the host spike file
   spike_file_close( info.f );
 
-  sprint("hartid = %llu: Application program entry point (virtual address): 0x%lx\n", hartid, p->trapframe->epc);
+  sprint("hartid = %lld: Application program entry point (virtual address): 0x%lx\n", hartid, p->trapframe->epc);
 }

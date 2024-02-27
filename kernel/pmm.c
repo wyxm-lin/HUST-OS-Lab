@@ -61,7 +61,7 @@ void *alloc_page(void) {
   list_node *n = g_free_mem_list.next;
   uint64 hartid = 0;
   if (vm_alloc_stage[hartid]) { // comment:added by teaching assistant
-    sprint("hartid = %llu: alloc page 0x%x\n", hartid, n);
+    sprint("hartid = %lld: alloc page 0x%x\n", hartid, n);
   }
   if (n) g_free_mem_list.next = n->next;
   spinlock_unlock(&AllocPageLock);

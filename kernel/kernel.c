@@ -59,7 +59,7 @@ void load_user_program(process *proc) {
   proc->trapframe->regs.sp = USER_STACK_TOP;  //virtual address of user stack top
   proc->trapframe->regs.tp = hartid; // comment: qwq(牢记lab1_challenge3的教训)
 
-  sprint("hartid = %llu: user frame 0x%lx, user stack 0x%lx, user kstack 0x%lx \n", hartid, proc->trapframe,
+  sprint("hartid = %lld: user frame 0x%lx, user stack 0x%lx, user kstack 0x%lx \n", hartid, proc->trapframe,
          proc->trapframe->regs.sp, proc->kstack);
 
   // load_bincode_from_host_elf() is defined in kernel/elf.c
@@ -91,7 +91,8 @@ MyStatus KernVmmStatus = No;
 // NOTE:此函数有点特殊 里面有一个uint64 hartid 而且初始化为0，需要仔细判断是否需要修改
 int s_start(void) {
   uint64 hartid = read_tp();
-  sprint("hartid = %llu: Enter supervisor mode...\n", hartid);
+  sprint("hartid = %lld: Enter supervisor mode...\n", hartid); // DoNotUnderstand: lld -> lld (使用llu会Load access fault)
+  // panic("stop");
   // in the beginning, we use Bare mode (direct) memory mapping as in lab1.
   // but now, we are going to switch to the paging mode @lab2_1.
   // note, the code still works in Bare mode when calling pmm_init() and kern_vm_init().
@@ -119,7 +120,7 @@ int s_start(void) {
   // the application code (elf) is first loaded into memory, and then put into execution
   load_user_program(&user_app[hartid]);
 
-  sprint("hartid = %llu: Switch to user mode...\n", hartid);
+  sprint("hartid = %lld: Switch to user mode...\n", hartid);
   
 //   uint64 hartid = 0; // comment: added by teaching assistant
   

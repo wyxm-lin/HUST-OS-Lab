@@ -17,5 +17,138 @@ hartid = 0: Enter supervisor mode...
 PKE kernel start 0x0000000080000000, PKE kernel end: 0x000000008000a000, PKE kernel size: 0x000000000000a000 .
 free physical memory address: [0x000000008000a000, 0x0000000087ffffff] 
 kernel memory manager is initializing ...
-stop in function pmm_init
-System is shutting down with exit code -1.
+In m_start, hartid:1
+hartid = 1: Enter supervisor mode...
+User application is loading.
+hartid = 0: user frame 0x0000000087ffc000, user stack 0x000000007ffff000, user kstack 0x0000000087ffa000 
+hartid = 0: Application: obj/app_alloc0
+KERN_BASE 0x0000000080000000
+hartid = 0: Application program entry point (virtual address): 0x0000000000010078
+hartid = 0: Switch to user mode...
+hartid = 0: alloc page 0x87fef000
+hartid = 0: alloc page 0x87fee000
+hartid = 0: alloc page 0x87fed000
+hartid = 0: vaddr 0x00400000 is mapped to paddr 0x87fef000
+=== user alloc 0 @ vaddr 0x00400000
+hartid = 0: alloc page 0x87fec000
+hartid = 0: vaddr 0x00401000 is mapped to paddr 0x87fec000
+=== user alloc 0 @ vaddr 0x00401000
+hartid = 0: alloc page 0x87feb000
+hartid = 0: vaddr 0x00402000 is mapped to paddr 0x87feb000
+=== user alloc 0 @ vaddr 0x00402000
+hartid = 0: alloc page 0x87fea000
+hartid = 0: alloc page 0x87fe9000
+hartid = 0: vaddr 0x00403000 is mapped to paddr 0x87fe9000
+=== user alloc 0 @ vaddr 0x00403000
+hartid = 0: alloc page 0x87fe8000
+hartid = 0: vaddr 0x00404000 is mapped to paddr 0x87fe8000
+=== user alloc 0 @ vaddr 0x00404000
+=== user0: 0
+=== user0: 1
+hartid = 0: alloc page 0x87fef000
+=== user0: 2
+=== user0: 3
+=== user0: 4
+hartid = 0: User exit with code:0.
+hartid = 0: alloc page 0x87fe8000
+hartid = 0: alloc page 0x87fe9000
+hartid = 0: alloc page 0x87feb000
+hartid = 0: alloc page 0x87fe7000
+hartid = 0: alloc page 0x87fe6000
+hartid = 0: alloc page 0x87fe5000
+hartid = 0: alloc page 0x87fe4000
+hartid = 0: alloc page 0x87fe3000
+hartid = 0: alloc page 0x87fe2000
+hartid = 0: alloc page 0x87fe1000
+hartid = 0: alloc page 0x87fe0000
+hartid = 0: alloc page 0x87fdf000
+hartid = 0: alloc page 0x87fde000
+hartid = 0: alloc page 0x87fdd000
+hartid = 0: alloc page 0x87fdc000
+hartid = 0: alloc page 0x87fdb000
+hartid = 0: alloc page 0x87fda000
+hartid = 0: alloc page 0x87fd9000
+hartid = 0: alloc page 0x87fd8000
+hartid = 0: alloc page 0x87fd7000
+hartid = 0: alloc page 0x87fd6000
+hartid = 0: alloc page 0x87fd5000
+hartid = 0: alloc page 0x87fd4000
+hartid = 0: alloc page 0x87fd3000
+hartid = 0: alloc page 0x87fd2000
+hartid = 0: alloc page 0x87fd1000
+hartid = 0: alloc page 0x87fd0000
+hartid = 0: alloc page 0x87fcf000
+hartid = 0: alloc page 0x87fce000
+hartid = 0: alloc page 0x87fcd000
+hartid = 0: alloc page 0x87fcc000
+hartid = 0: alloc page 0x87fcb000
+hartid = 0: alloc page 0x87fca000
+hartid = 0: alloc page 0x87fc9000
+hartid = 0: alloc page 0x87fc8000
+hartid = 0: alloc page 0x87fc7000
+hartid = 0: alloc page 0x87fc6000
+hartid = 0: alloc page 0x87fc5000
+hartid = 0: alloc page 0x87fc4000
+hartid = 0: alloc page 0x87fc3000
+hartid = 0: alloc page 0x87fc2000
+hartid = 0: alloc page 0x87fc1000
+hartid = 0: alloc page 0x87fc0000
+hartid = 0: alloc page 0x87fbf000
+hartid = 0: alloc page 0x87fbe000
+hartid = 0: alloc page 0x87fbd000
+hartid = 0: alloc page 0x87fbc000
+hartid = 0: alloc page 0x87fbb000
+hartid = 0: alloc page 0x87fba000
+hartid = 0: alloc page 0x87fb9000
+hartid = 0: alloc page 0x87fb8000
+hartid = 0: alloc page 0x87fb7000
+hartid = 0: alloc page 0x87fb6000
+hartid = 0: alloc page 0x87fb5000
+hartid = 0: alloc page 0x87fb4000
+hartid = 0: alloc page 0x87fb3000
+hartid = 0: alloc page 0x87fb2000
+hartid = 0: alloc page 0x87fb1000
+hartid = 0: alloc page 0x87fb0000
+hartid = 0: alloc page 0x87faf000
+physical address of _etext is: 0x0000000080006000
+User application is loading.
+hartid = 0: alloc page 0x87fae000
+hartid = 0: alloc page 0x87fad000
+hartid = 0: alloc page 0x87fac000
+hartid = 0: alloc page 0x87fab000
+hartid = 1: user frame 0x0000000087fae000, user stack 0x000000007ffff000, user kstack 0x0000000087fad000 
+hartid = 1: Application: obj/app_alloc1
+hartid = 0: alloc page 0x87faa000
+hartid = 0: alloc page 0x87fa9000
+hartid = 0: alloc page 0x87fa8000
+hartid = 1: Application program entry point (virtual address): 0x0000000000010078
+hartid = 0: alloc page 0x87fa7000
+hartid = 0: alloc page 0x87fa6000
+hartid = 0: alloc page 0x87fa5000
+hartid = 0: alloc page 0x87fa4000
+hartid = 0: alloc page 0x87fa3000
+hartid = 1: Switch to user mode...
+hartid = 0: alloc page 0x87fa2000
+hartid = 0: alloc page 0x87fa1000
+hartid = 1: vaddr 0x00405000 is mapped to paddr 0x87fa2000
+>>> user alloc 1 @ vaddr 0x00405000
+hartid = 0: alloc page 0x87fa0000
+hartid = 1: vaddr 0x00406000 is mapped to paddr 0x87fa0000
+>>> user alloc 1 @ vaddr 0x00406000
+hartid = 0: alloc page 0x87f9f000
+hartid = 1: vaddr 0x00407000 is mapped to paddr 0x87f9f000
+>>> user alloc 1 @ vaddr 0x00407000
+hartid = 0: alloc page 0x87f9e000
+hartid = 1: vaddr 0x00408000 is mapped to paddr 0x87f9e000
+>>> user alloc 1 @ vaddr 0x00408000
+hartid = 0: alloc page 0x87f9d000
+hartid = 1: vaddr 0x00409000 is mapped to paddr 0x87f9d000
+>>> user alloc 1 @ vaddr 0x00409000
+>>> user 1: 5
+>>> user 1: 6
+>>> user 1: 7
+>>> user 1: 8
+>>> user 1: 9
+hartid = 1: User exit with code:0.
+hartid = 0: shutdown with code:0.
+System is shutting down with exit code 0.
