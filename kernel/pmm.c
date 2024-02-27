@@ -41,8 +41,9 @@ void free_page(void *pa)
 {
 	if (((uint64)pa % PGSIZE) != 0 || (uint64)pa < free_mem_start_addr || (uint64)pa >= free_mem_end_addr)
 	{
-		if ((uint64)pa < free_mem_start_addr || (uint64)pa >= free_mem_end_addr) // NOTE:保证pa在合法的物理内存范围内
-			return;
+		// sprint("panic free_page 0x%lx \n", pa);
+		// if ((uint64)pa < free_mem_start_addr || (uint64)pa >= free_mem_end_addr) // NOTE:保证pa在合法的物理内存范围内
+		// 	return;
 		panic("free_page 0x%lx \n", pa);
 	}
 

@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
       wait(pid);
       printu("==========Command End============\n\n");
     }
-    break; // remind: remove the line
+    // break; // remind: remove the line
   }
   exit(0);
   return 0;

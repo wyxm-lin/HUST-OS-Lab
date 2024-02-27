@@ -137,7 +137,7 @@ process *alloc_process()
 	// map S-mode trap vector section in user space (direct mapping as in kernel space)
 	// we assume that the size of usertrap.S is smaller than a page.
 	user_vm_map((pagetable_t)procs[i].pagetable, (uint64)trap_sec_start, PGSIZE,
-				(uint64)trap_sec_start, prot_to_type(PROT_READ | PROT_EXEC, 0));
+				(uint64)trap_sec_start, prot_to_type(PROT_READ | PROT_EXEC, 0)); // 没有write权限
 	procs[i].mapped_info[SYSTEM_SEGMENT].va = (uint64)trap_sec_start;
 	procs[i].mapped_info[SYSTEM_SEGMENT].npages = 1;
 	procs[i].mapped_info[SYSTEM_SEGMENT].seg_type = SYSTEM_SEGMENT;
@@ -161,6 +161,7 @@ process *alloc_process()
 	procs[i].pfiles = init_proc_file_management();
 	sprint("in alloc_proc. build proc_file_management successfully.\n");
 
+	procs[i].parent = NULL;
 	procs[i].waitpid = 0;
 
 	// return after initialization.
@@ -200,6 +201,10 @@ int do_fork(process *parent)
 		{
 		case CONTEXT_SEGMENT:
 			*child->trapframe = *parent->trapframe;
+			{
+				
+			}
+			// do_fork map code segment at pa:0000000087f13000 of parent to child at va:0000000000010000.
 			break;
 		case STACK_SEGMENT:
 			memcpy((void *)lookup_pa(child->pagetable, child->mapped_info[STACK_SEGMENT].va),
@@ -231,6 +236,8 @@ int do_fork(process *parent)
 					memcpy(child_pa, (void *)lookup_pa(parent->pagetable, heap_block), PGSIZE);
 					user_vm_map((pagetable_t)child->pagetable, heap_block, PGSIZE, (uint64)child_pa,
 								prot_to_type(PROT_WRITE | PROT_READ, 1));
+
+					// sprint("the pa is %lx, the va is %lx\n", child_pa, heap_block);
 				}
 
 				child->mapped_info[HEAP_SEGMENT].npages = parent->mapped_info[HEAP_SEGMENT].npages;
@@ -258,10 +265,21 @@ int do_fork(process *parent)
 			child->mapped_info[child->total_mapped_region].npages =
 				parent->mapped_info[i].npages;
 			child->mapped_info[child->total_mapped_region].seg_type = CODE_SEGMENT;
-			child->total_mapped_region++; // TODO: don't understand this line
+			child->total_mapped_region++;
+			sprint("do_fork map code segment at pa:%lx of parent to child at va:%lx.\n", lookup_pa(parent->pagetable, parent->mapped_info[i].va), parent->mapped_info[i].va); // 增添此行(根据doc打印)
 			break;
 		}
 	}
+
+	// pfiles复制
+    child->pfiles->nfiles = parent->pfiles->nfiles;
+    child->pfiles->cwd = parent->pfiles->cwd;
+    for (int i = 0; i < MAX_FILES; i++) {
+        child->pfiles->opened_files[i] = parent->pfiles->opened_files[i];
+        if (child->pfiles->opened_files[i].f_dentry != NULL)
+            child->pfiles->opened_files[i].f_dentry->d_ref++;
+        // sprint("the address is %0x\n", child->pfiles->opened_files[i].f_dentry);
+    }
 
 	child->status = READY;
 	child->trapframe->regs.a0 = 0;
@@ -274,6 +292,8 @@ int do_fork(process *parent)
 static void exec_clean_pagetable(pagetable_t page_dir)
 {									  // comment: pagetable_t是uint64* 其加法遵循指针加法
 	int cnt = PGSIZE / sizeof(pte_t); // pte_t是int型
+	int valid_cnt = 0;
+	int valid_and_writable_cnt = 0;
 	for (int i = 0; i < cnt; i++)
 	{
 		pte_t *pte1 = page_dir + i;
@@ -289,11 +309,28 @@ static void exec_clean_pagetable(pagetable_t page_dir)
 					for (int k = 0; k < cnt; k++)
 					{
 						pte_t *pte3 = page_low_dir + k;
-						if (*pte3 & PTE_V)
+						// if (*pte3 & PTE_V) {
+						// 	free_cnt++;
+						// 	uint64 page = PTE2PA(*pte3);
+						// 	free_page((void *)page); // 此处需要修改free_page函数(DoNotUnderstand:没有明白为什么和之前一样会寄)
+						// 	(*pte3) &= ~PTE_V;
+						// }
+						// if (*pte3 & PTE_V & PTE_W) // 此处低级错误
+						// {
+						// 	// free_cnt++;
+                        //     uint64 page = PTE2PA(*pte3);
+                        //     free_page((void *)page);
+                        //     (*pte3) &= ~PTE_V;
+						// }
+						if (*pte3 & PTE_V) // NOTE:通过可写来区分trap_sec_start 这一个虚拟地址
 						{
-                            uint64 page = PTE2PA(*pte3);
-                            free_page((void *)page); // 释放物理页
-                            (*pte3) &= ~PTE_V;		 // 将页表项置为无效
+							valid_cnt++;
+							if (*pte3 & PTE_W) {
+								valid_and_writable_cnt++;
+								uint64 page = PTE2PA(*pte3);
+                            	free_page((void *)page);
+							}
+                            (*pte3) &= ~PTE_V;
 						}
 					}
 					free_page((void *)page_low_dir);
@@ -303,6 +340,7 @@ static void exec_clean_pagetable(pagetable_t page_dir)
 		}
 	}
 	free_page((void *)page_dir);
+	sprint("                                                        valid_cnt is %d valid_and_writale_cnt is %d\n", valid_cnt, valid_and_writable_cnt);
 }
 
 void exec_clean(process *p)
@@ -343,7 +381,7 @@ void exec_clean(process *p)
 	// map S-mode trap vector section in user space (direct mapping as in kernel space)
 	// we assume that the size of usertrap.S is smaller than a page.
 	user_vm_map((pagetable_t)p->pagetable, (uint64)trap_sec_start, PGSIZE,
-				(uint64)trap_sec_start, prot_to_type(PROT_READ | PROT_EXEC, 0));
+				(uint64)trap_sec_start, prot_to_type(PROT_READ | PROT_EXEC, 0)); // 没有write权限
 	p->mapped_info[SYSTEM_SEGMENT].va = (uint64)trap_sec_start;
 	p->mapped_info[SYSTEM_SEGMENT].npages = 1;
 	p->mapped_info[SYSTEM_SEGMENT].seg_type = SYSTEM_SEGMENT;

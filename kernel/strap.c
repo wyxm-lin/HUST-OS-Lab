@@ -30,7 +30,10 @@ static void handle_syscall(trapframe *tf)
 	// panic( "call do_syscall to accomplish the syscall and lab1_1 here.\n" );
 	// do_syscall(tf->regs.a0, tf->regs.a1, tf->regs.a2, tf->regs.a3, tf->regs.a4, tf->regs.a5, tf->regs.a6, tf->regs.a7);
 	// note:将结果存入a0中
-	tf->regs.a0 = do_syscall(tf->regs.a0, tf->regs.a1, tf->regs.a2, tf->regs.a3, tf->regs.a4, tf->regs.a5, tf->regs.a6, tf->regs.a7);
+	
+	int ret = do_syscall(tf->regs.a0, tf->regs.a1, tf->regs.a2, tf->regs.a3, tf->regs.a4, tf->regs.a5, tf->regs.a6, tf->regs.a7);
+	// sprint("in function handle_syscall, the ret is %0x and the function will return\n", ret);
+	tf->regs.a0 = ret;
 }
 
 //

@@ -249,8 +249,10 @@ int sys_user_exec(char *pathva, char *arg)
 {
 	char *pathpa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), pathva);
 	char* argpa = (char* )user_va_to_pa((pagetable_t)(current->pagetable), arg);
-	sprint("in function sys_user_exec, pathpa is %s, argva is %s\n", pathpa, argpa);
-	return do_exec(pathpa, argpa);
+	// sprint("in function sys_user_exec, pathpa is %s, argva is %s\n", pathpa, argpa);
+	int ret = do_exec(pathpa, argpa);
+	// sprint("sys_user_exec function will return\n");
+	return ret;
 }
 
 extern process procs[NPROC];
@@ -322,8 +324,9 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
 		return sys_user_link((char *)a1, (char *)a2);
 	case SYS_user_unlink:
 		return sys_user_unlink((char *)a1);
-	case SYS_user_exec:
+	case SYS_user_exec: {
 		return sys_user_exec((char *)a1, (char *)a2);
+	}
 	case SYS_user_wait:
 		return sys_user_wait(a1);
 	default:
