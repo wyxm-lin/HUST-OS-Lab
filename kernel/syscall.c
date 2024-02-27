@@ -93,6 +93,8 @@ ssize_t sys_user_yield() {
   schedule();
   return 0;
 }
+
+// added by teacher assistant
 ssize_t sys_user_printpa(uint64 va)
 {
   uint64 pa = (uint64)user_va_to_pa((pagetable_t)(current->pagetable), (void*)va);
