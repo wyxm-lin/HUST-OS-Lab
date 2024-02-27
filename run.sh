@@ -1,0 +1,1 @@
+spike obj/riscv-pke /bin/app_shell > print.txt

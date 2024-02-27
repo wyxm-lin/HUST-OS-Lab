@@ -291,25 +291,18 @@ static void exec_clean_pagetable(pagetable_t page_dir)
 						pte_t *pte3 = page_low_dir + k;
 						if (*pte3 & PTE_V)
 						{
-							if ((*pte3) & PTE_U) {
-								uint64 page = PTE2PA(*pte3);
-								free_page((void *)page); // 释放物理页
-								(*pte3) &= ~PTE_V;		 // 将页表项置为无效
-							}
+                            uint64 page = PTE2PA(*pte3);
+                            free_page((void *)page); // 释放物理页
+                            (*pte3) &= ~PTE_V;		 // 将页表项置为无效
 						}
 					}
-					// sprint("lgm:page_low_dir is %0x\n", page_low_dir);
 					free_page((void *)page_low_dir);
 				}
 			}
-			// sprint("lgm:page_mid_dir is %0x\n", page_mid_dir);
 			free_page((void *)page_mid_dir);
 		}
 	}
-	// sprint("lgm:page_dir is %0x\n", page_dir);
 	free_page((void *)page_dir);
-	// sprint("exec_clean_pagetable end\n");
-	// panic("stop");
 }
 
 void exec_clean(process *p)
@@ -366,5 +359,4 @@ void exec_clean(process *p)
 	p->mapped_info[HEAP_SEGMENT].seg_type = HEAP_SEGMENT;
 
 	p->total_mapped_region = 4;
-	// sprint("lgm:exec_clean: p->total_mapped_region = %d\n", p->total_mapped_region);
 }
