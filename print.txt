@@ -1,0 +1,41 @@
+linking  obj/util.a ...
+Util lib has been build into "obj/util.a"
+linking  obj/spike_interface.a ...
+Spike lib has been build into "obj/spike_interface.a"
+linking obj/riscv-pke ...
+PKE core has been built into "obj/riscv-pke"
+linking obj/app_cow ...
+User app has been built into "obj/app_cow"
+********************HUST PKE********************
+spike obj/riscv-pke obj/app_cow
+In m_start, hartid:0
+HTIF is available!
+(Emulated) memory size: 2048 MB
+Enter supervisor mode...
+PKE kernel start 0x0000000080000000, PKE kernel end: 0x000000008004b000, PKE kernel size: 0x000000000004b000 .
+free physical memory address: [0x000000008004b000, 0x0000000087ffffff] 
+kernel memory manager is initializing ...
+KERN_BASE 0x0000000080000000
+physical address of _etext is: 0x0000000080005000
+kernel page table is on 
+Switch to user mode...
+in alloc_proc. user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000 
+User application is loading.
+Application: obj/app_cow
+CODE_SEGMENT added at mapped info offset:4
+Application program entry point (virtual address): 0x0000000000010078
+going to insert process 0 to ready queue.
+going to schedule process 0 to run.
+the physical address of parent process heap is: 0000000087faf000
+User call fork.
+will fork a child from parent 0.
+in alloc_proc. user frame 0x0000000087fad000, user stack 0x000000007ffff000, user kstack 0x0000000087fac000 
+going to insert process 1 to ready queue.
+User exit with code:0.
+going to schedule process 1 to run.
+the physical address of child process heap before copy on write is: 0000000087faf000
+handle_page_fault: 0000000000400000
+the physical address of child process heap after copy on write is: 0000000087fa0000
+User exit with code:0.
+no more ready processes, system shutdown now.
+System is shutting down with exit code 0.

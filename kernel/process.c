@@ -17,6 +17,7 @@
 #include "memlayout.h"
 #include "sched.h"
 #include "spike_interface/spike_utils.h"
+#include "spike_interface/atomic.h"
 
 // Two functions defined in kernel/usertrap.S
 extern char smode_trap_vector[];
@@ -182,6 +183,7 @@ int free_process(process *proc)
 // segments (code, system) of the parent to child. the stack segment remains unchanged
 // for the child.
 //
+
 int do_fork(process *parent)
 {
 	sprint("will fork a child from parent %d.\n", parent->pid);
@@ -210,7 +212,7 @@ int do_fork(process *parent)
 				uint64 heap_bottom = parent->user_heap.heap_bottom;
 				for (int i = 0; i < parent->user_heap.free_pages_count; i++)
 				{
-					int index = (parent->user_heap.free_pages_address[i] - heap_bottom) / PGSIZE;
+					int index = (parent->user_heap.free_pages_address[i] - heap_bottom) / PGSIZE; // DoNotUnderstand: 为什么要这样计算
 					free_block_filter[index] = 1;
 				}
 
@@ -221,10 +223,13 @@ int do_fork(process *parent)
 					if (free_block_filter[(heap_block - heap_bottom) / PGSIZE]) // skip free blocks
 						continue;
 
-					void *child_pa = alloc_page();
-					memcpy(child_pa, (void *)lookup_pa(parent->pagetable, heap_block), PGSIZE);
-					user_vm_map((pagetable_t)child->pagetable, heap_block, PGSIZE, (uint64)child_pa,
-								prot_to_type(PROT_WRITE | PROT_READ, 1));
+					// void *child_pa = alloc_page();
+					// memcpy(child_pa, (void *)lookup_pa(parent->pagetable, heap_block), PGSIZE);
+					// user_vm_map((pagetable_t)child->pagetable, heap_block, PGSIZE, (uint64)child_pa,
+					// 			prot_to_type(PROT_WRITE | PROT_READ, 1));
+
+					// 不实际分配物理页，只是映射
+					cow_vm_map((pagetable_t)child->pagetable, heap_block, lookup_pa(parent->pagetable, heap_block));
 				}
 
 				child->mapped_info[HEAP_SEGMENT].npages = parent->mapped_info[HEAP_SEGMENT].npages;

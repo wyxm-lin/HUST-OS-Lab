@@ -10,6 +10,7 @@
 #include "vmm.h"
 #include "sched.h"
 #include "util/functions.h"
+#include "config.h"
 
 #include "spike_interface/spike_utils.h"
 
@@ -66,6 +67,10 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
       {
         void* pa = alloc_page();
         pte_t* pte = page_walk(current->pagetable, stval, 1);
+        if ((RSW((*pte))) == True) {
+          uint64 origin_pa = PTE2PA(*pte);
+          free_page((void*)origin_pa); // 尝试释放掉原来的内存
+        }
         *pte = PA2PTE(pa) | PTE_V | prot_to_type(PROT_WRITE | PROT_READ, 1);
       }
       break;
