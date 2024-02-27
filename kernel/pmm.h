@@ -9,23 +9,21 @@ void* alloc_page();
 void free_page(void* pa);
 
 // /********************start of RBTree*************************/
-// #include "riscv.h"
-// // 手搓红黑树(不太好管理内核空间)
-// typedef enum {RED, BLACK} Color;
+#include "riscv.h"
+// 手搓红黑树
+typedef enum {RED, BLACK} Color;
 
-// typedef struct RBNode {
-//     uint64 key;
-//     uint64 value;
-//     Color color;
-//     struct RBNode* left;
-//     struct RBNode* right;
-//     struct RBNode* parent;
-// } RBNode;
-// typedef struct RBTree {
-//     RBNode* root;
-// }RBTree;
-
-// extern RBTree tr;
+typedef struct RBNode {
+    uint64 key;
+    uint64 value;
+    Color color;
+    struct RBNode* left;
+    struct RBNode* right;
+    struct RBNode* parent;
+} RBNode;
+typedef struct RBTree {
+    RBNode* root;
+}RBTree;
 
 // /********************end of RBTree***************************/
 
