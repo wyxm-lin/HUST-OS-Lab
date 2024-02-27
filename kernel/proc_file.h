@@ -37,4 +37,6 @@ proc_file_management *init_proc_file_management(void);
 
 void reclaim_proc_file_management(proc_file_management *pfiles);
 
+int exec(char *path, char* arg);
+
 #endif

@@ -213,6 +213,28 @@ ssize_t sys_user_unlink(char * vfn){
   return do_unlink(pfn);
 }
 
+int sys_user_exec(char* pathva, char* arg) {
+  // TODO
+  char pathpa = (char*)user_va_to_pa((pagetable_t)(current->pagetable), pathva);
+  return do_exec(pathpa, arg);
+}
+
+extern process procs[NPROC];
+int sys_user_wait(int pid) {
+  if (pid == 0) {
+    panic("wait for pid 0 is not allowed.\n");
+    return -1; // never reach here
+  }
+  if (procs[pid].parent != current) {
+    panic("wait for a process that is not a child.\n");
+    return -1;
+  }
+  current->status = BLOCKED;
+  current->waitpid = pid;
+  schedule();
+  return pid;
+}
+
 //
 // [a0]: the syscall number; [a1] ... [a7]: arguments to the syscalls.
 // returns the code of success, (e.g., 0 means success, fail for otherwise)
@@ -261,6 +283,10 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
       return sys_user_link((char *)a1, (char *)a2);
     case SYS_user_unlink:
       return sys_user_unlink((char *)a1);
+    case SYS_user_exec:
+      return sys_user_exec((char*)a1, (char*)a2);
+    case SYS_user_wait:
+      return sys_user_wait(a1);
     default:
       panic("Unknown syscall %ld \n", a0);
   }

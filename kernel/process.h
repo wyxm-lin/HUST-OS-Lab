@@ -93,6 +93,8 @@ typedef struct process_t {
 
   // file system. added @lab4_1
   proc_file_management *pfiles;
+
+  int waitpid;
 }process;
 
 // switch to run user app

@@ -14,6 +14,7 @@
 #include "spike_interface/spike_utils.h"
 #include "util/functions.h"
 #include "util/string.h"
+#include "elf.h"
 
 //
 // initialize file system
@@ -220,4 +221,10 @@ int do_link(char *oldpath, char *newpath) {
 //
 int do_unlink(char *path) {
   return vfs_unlink(path);
+}
+
+int do_exec(char* path, char* arg) {
+  // TODO 加载参数
+  load_bincode_from_host_elf(current, path);
+  return -1; // never reach here
 }
