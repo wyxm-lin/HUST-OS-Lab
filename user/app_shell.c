@@ -35,18 +35,18 @@ int main(int argc, char *argv[]) {
     if(strcmp(command, "END") == 0 && strcmp(para, "END") == 0)
       break;
     printu("Next command: %s %s\n\n", command, para);
-    printu("==========Command Start============\n\n");
-    int pid = fork();
-    if(pid == 0) {
-      int ret = exec(command, para);
-      if (ret == -1)
-      printu("exec failed!\n");
-    }
-    else
-    {
-      wait(pid);
-      printu("==========Command End============\n\n");
-    }
+    // printu("==========Command Start============\n\n");
+    // int pid = fork();
+    // if(pid == 0) {
+    //   int ret = exec(command, para);
+    //   if (ret == -1)
+    //   printu("exec failed!\n");
+    // }
+    // else
+    // {
+    //   wait(pid);
+    //   printu("==========Command End============\n\n");
+    // }
   }
   exit(0);
   return 0;

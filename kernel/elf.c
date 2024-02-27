@@ -109,6 +109,7 @@ elf_status elf_load(elf_ctx *ctx) {
 //
 // load the elf of user application, by using the spike file interface.
 //
+// comment:修改为由vfs读取文件 by teacher assistant
 void load_bincode_from_host_elf(process *p, char *filename) {
   sprint("Application: %s\n", filename);
 

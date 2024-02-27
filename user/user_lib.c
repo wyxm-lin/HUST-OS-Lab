@@ -167,3 +167,12 @@ int unlink_u(const char *fn){
 int close(int fd) {
   return do_user_call(SYS_user_close, fd, 0, 0, 0, 0, 0, 0);
 }
+
+// added @ lab4_challenge3
+int exec(const char *path, char* argv[]) {
+  return do_user_call(SYS_user_exec, (uint64)path, (uint64)argv, 0, 0, 0, 0, 0);
+}
+
+int wait(int pid) {
+  return do_user_call(SYS_user_wait, pid, 0, 0, 0, 0, 0, 0);
+}
