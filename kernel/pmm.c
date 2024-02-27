@@ -38,9 +38,9 @@ static void create_freepage_list(uint64 start, uint64 end) {
 void free_page(void *pa) {
   // sprint("lgm:in function free_page: before panic: pa is %lx\n", pa);
   if (((uint64)pa % PGSIZE) != 0 || (uint64)pa < free_mem_start_addr || (uint64)pa >= free_mem_end_addr) {
-    if ((uint64)pa < free_mem_start_addr || (uint64)pa >= free_mem_end_addr) {
-      return; // 直接返回 
-    }
+    // if ((uint64)pa < free_mem_start_addr || (uint64)pa >= free_mem_end_addr) {
+    //   return; // 脰卤陆脫路碌禄脴 
+    // }
     panic("free_page 0x%lx \n", pa);
   }
   // sprint("lgm:in function free_page: after panic: pa is %lx\n", pa);

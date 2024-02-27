@@ -300,6 +300,8 @@ int do_fork(process *parent)
 // 根据alloc_process函数改写
 static void exec_clean_pagetable(pagetable_t page_dir) { // comment: pagetable_t是uint64* 其加法遵循指针加法
     int cnt = PGSIZE / sizeof(pte_t); // pte_t是int型
+    int vaild_cnt = 0;
+    int valid_and_writable_cnt = 0;
     for (int i = 0; i < cnt; i++) {
         pte_t* pte1 = page_dir + i;
         if (*pte1 & PTE_V) {
@@ -311,13 +313,20 @@ static void exec_clean_pagetable(pagetable_t page_dir) { // comment: pagetable_t
                     for (int k = 0; k < cnt; k++) {
                         pte_t* pte3 = page_low_dir + k;
                         if (*pte3 & PTE_V) {
-                            uint64 page = PTE2PA(*pte3);
-                            // sprint("lgm:the pa is %0x\n", page);
-                            // if (free_mem_start_addr <= page && page < free_mem_end_addr) {
-                            //     free_page((void *)page); // 释放物理页
-                            //     (*pte3) &= ~PTE_V; // 将页表项置为无效
-                            // } 
-                            free_page((void *)page); // 释放物理页(注意：修改了原先的free_page函数)
+                            // uint64 page = PTE2PA(*pte3);
+                            // // sprint("lgm:the pa is %0x\n", page);
+                            // // if (free_mem_start_addr <= page && page < free_mem_end_addr) {
+                            // //     free_page((void *)page); // 释放物理页
+                            // //     (*pte3) &= ~PTE_V; // 将页表项置为无效
+                            // // } 
+                            // free_page((void *)page); // 释放物理页(注意：修改了原先的free_page函数)
+                            // (*pte3) &= ~PTE_V; // 将页表项置为无效
+                            vaild_cnt ++;
+                            if (*pte3 & PTE_W) {
+                                valid_and_writable_cnt ++;
+                                uint64 page = PTE2PA(*pte3);
+                                free_page((void *)page); 
+                            }
                             (*pte3) &= ~PTE_V; // 将页表项置为无效
                         }
                     }
@@ -333,6 +342,7 @@ static void exec_clean_pagetable(pagetable_t page_dir) { // comment: pagetable_t
     free_page((void *)page_dir);
     // sprint("exec_clean_pagetable end\n");
     // panic("stop");
+    sprint("                                         vaild_cnt is %d, valid_and_writable_cnt is %d\n", vaild_cnt, valid_and_writable_cnt);
 }
 
 void exec_clean(process* p) {
