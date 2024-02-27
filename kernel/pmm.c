@@ -57,7 +57,7 @@ void free_page(void *pa) {
 void *alloc_page(void) {
   list_node *n = g_free_mem_list.next;
   if (n) g_free_mem_list.next = n->next;
-
+  // sprint("in function alloc_page the pa is %lx\n", (uint64)n);
   return (void *)n;
 }
 

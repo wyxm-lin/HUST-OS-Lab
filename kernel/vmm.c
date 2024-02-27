@@ -26,7 +26,13 @@ int map_pages(pagetable_t page_dir, uint64 va, uint64 size, uint64 pa, int perm)
     if (*pte & PTE_V)
       panic("map_pages fails on mapping va (0x%lx) to pa (0x%lx)", first, pa);
     *pte = PA2PTE(pa) | perm | PTE_V;
+    // if (pa == 0x87f1e000) {
+    //   if (*pte & PTE_W) {
+    //     sprint("map_pages: va: 0x%lx, pa: 0x%lx, perm: 0x%x\n", va, pa, perm);
+    //   }
+    // }
   }
+
   return 0;
 }
 

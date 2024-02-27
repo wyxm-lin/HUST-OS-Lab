@@ -1,1 +1,1 @@
-spike ./obj/riscv-pke ./obj/app_exec
+spike ./obj/riscv-pke ./obj/app_exec > print.txt

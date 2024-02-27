@@ -91,6 +91,7 @@ void init_proc_pool()
 //
 process *alloc_process()
 {
+    // sprint("enter alloc_process.\n");
     // locate the first usable process structure
     int i;
 
@@ -166,6 +167,7 @@ process *alloc_process()
     procs[i].wait_pid = 0; // 没有需要等待的子进程
     procs[i].parent = NULL; // 设置为没有父进程
 
+    // sprint("leave alloc_process.\n");
     // return after initialization.
     return &procs[i];
 }
@@ -262,7 +264,7 @@ int do_fork(process *parent)
             child->mapped_info[child->total_mapped_region].npages =
                 parent->mapped_info[i].npages;
             child->mapped_info[child->total_mapped_region].seg_type = CODE_SEGMENT;
-            child->total_mapped_region++; // TODO: don't understand this line
+            child->total_mapped_region++; 
             break;
         case DATA_SEGMENT: // DONE:
             child->mapped_info[child->total_mapped_region].seg_type = DATA_SEGMENT;
@@ -322,8 +324,10 @@ static void exec_clean_pagetable(pagetable_t page_dir) { // comment: pagetable_t
                             // free_page((void *)page); // 释放物理页(注意：修改了原先的free_page函数)
                             // (*pte3) &= ~PTE_V; // 将页表项置为无效
                             vaild_cnt ++;
+                            // sprint("lgm:the pa is %0x\n", PTE2PA(*pte3));
                             if (*pte3 & PTE_W) {
                                 valid_and_writable_cnt ++;
+                                // sprint("                lgm:the pa is %0x\n", PTE2PA(*pte3));
                                 uint64 page = PTE2PA(*pte3);
                                 free_page((void *)page); 
                             }
@@ -342,7 +346,7 @@ static void exec_clean_pagetable(pagetable_t page_dir) { // comment: pagetable_t
     free_page((void *)page_dir);
     // sprint("exec_clean_pagetable end\n");
     // panic("stop");
-    sprint("                                         vaild_cnt is %d, valid_and_writable_cnt is %d\n", vaild_cnt, valid_and_writable_cnt);
+    // sprint("                                         vaild_cnt is %d, valid_and_writable_cnt is %d\n", vaild_cnt, valid_and_writable_cnt);
 }
 
 void exec_clean(process* p) {
