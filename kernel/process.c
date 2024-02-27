@@ -340,7 +340,7 @@ static void exec_clean_pagetable(pagetable_t page_dir)
 		}
 	}
 	free_page((void *)page_dir);
-	sprint("                                                        valid_cnt is %d valid_and_writale_cnt is %d\n", valid_cnt, valid_and_writable_cnt);
+	// sprint("                                                        valid_cnt is %d valid_and_writale_cnt is %d\n", valid_cnt, valid_and_writable_cnt);
 }
 
 void exec_clean(process *p)
