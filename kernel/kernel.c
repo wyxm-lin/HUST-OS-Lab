@@ -10,9 +10,11 @@
 #include "vmm.h"
 #include "memlayout.h"
 #include "spike_interface/spike_utils.h"
+#include "spike_interface/atomic.h"
+#include "sync_utils.h"
 
 // process is a structure defined in kernel/process.h
-process user_app;
+process user_app[NCPU];
 
 //
 // trap_sec_start points to the beginning of S-mode trap segment (i.e., the entry point of
@@ -36,6 +38,8 @@ void enable_paging() {
 // load_bincode_from_host_elf is defined in elf.c
 //
 void load_user_program(process *proc) {
+  int hartid = read_tp();
+
   sprint("User application is loading.\n");
   // allocate a page to store the trapframe. alloc_page is defined in kernel/pmm.c. added @lab2_1
   proc->trapframe = (trapframe *)alloc_page();
@@ -52,7 +56,7 @@ void load_user_program(process *proc) {
   // USER_STACK_TOP = 0x7ffff000, defined in kernel/memlayout.h
   proc->trapframe->regs.sp = USER_STACK_TOP;  //virtual address of user stack top
 
-  sprint("hartid = ?: user frame 0x%lx, user stack 0x%lx, user kstack 0x%lx \n", proc->trapframe,
+  sprint("hartid = %d: user frame 0x%lx, user stack 0x%lx, user kstack 0x%lx \n", hartid, proc->trapframe,
          proc->trapframe->regs.sp, proc->kstack);
 
   // load_bincode_from_host_elf() is defined in kernel/elf.c
@@ -76,8 +80,12 @@ void load_user_program(process *proc) {
 //
 // s_start: S-mode entry point of riscv-pke OS kernel.
 //
+static int BootCount = 0;
+extern spinlock_t BootLock;
+// NOTE:此函数有点特殊 里面有一个uint64 hartid 而且初始化为0，需要仔细判断是否需要修改
 int s_start(void) {
-  sprint("hartid = ?: Enter supervisor mode...\n");
+  int myhartid = read_tp();
+  sprint("hartid = %d: Enter supervisor mode...\n", myhartid);
   // in the beginning, we use Bare mode (direct) memory mapping as in lab1.
   // but now, we are going to switch to the paging mode @lab2_1.
   // note, the code still works in Bare mode when calling pmm_init() and kern_vm_init().
@@ -95,15 +103,18 @@ int s_start(void) {
   sprint("kernel page table is on \n");
 
   // the application code (elf) is first loaded into memory, and then put into execution
-  load_user_program(&user_app);
+  load_user_program(&user_app[myhartid]);
 
-  sprint("hartid = ?: Switch to user mode...\n");
+  spinlock_unlock(&BootLock);
+  sync_barrier(&BootCount, NCPU); // comment: 设置同步点
+
+  sprint("hartid = %d: Switch to user mode...\n", myhartid);
   
   uint64 hartid = 0; // comment: added by teaching assistant
   
   vm_alloc_stage[hartid] = 1;
   // switch_to() is defined in kernel/process.c
-  switch_to(&user_app);
+  switch_to(&user_app[myhartid]);
 
   // we should never reach here.
   return 0;
