@@ -74,7 +74,7 @@ void switch_to(process *proc)
 	故而修改分配机制
 
 	需要注意到虚拟地址必须连续，故而在所有的free块中，如果没有找到可以直接放下的话，应该按照如下方式去进行分配
-		如果最大的free块恰好可以接上g_ufree_page的话，就使用该free块
+		如果地址最大的free块恰好可以接上g_ufree_page的话，就使用该free块
 		否则，直接从g_ufree_page开始分配
 
 	同时根据头哥的两个测试代码，其实无须过多考虑free的问题
