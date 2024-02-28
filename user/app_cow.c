@@ -10,10 +10,19 @@
 
 int main(void) {
   int *heap_data = naive_malloc();
+  heap_data[0] = 100;
+  printu("in parent process data is %d\n", heap_data[0]);
   printu("the physical address of parent process heap is: ");
   printpa(heap_data);
   int pid = fork();
   if (pid == 0) {
+    printu("the physical address of child process heap before copy on write is: ");
+    printpa(heap_data);
+    int a = 1;
+    printu("%p\n",&a);
+    printu("%d\n", heap_data[0]);
+    // printu("a's address is %p\n", &a);
+    // printu("the data is %d\n", a);
     printu("the physical address of child process heap before copy on write is: ");
     printpa(heap_data);
     heap_data[0] = 0;

@@ -74,6 +74,15 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
         *pte = PA2PTE(pa) | PTE_V | prot_to_type(PROT_WRITE | PROT_READ, 1);
       }
       break;
+    case CAUSE_LOAD_PAGE_FAULT:
+      {
+        pte_t* pte = page_walk(current->pagetable, stval, 0);
+        if (*pte & PTE_R) {
+          sprint("can read\n");
+        }
+        sprint("come here : load page fault\n");
+        break;
+      }
     default:
       sprint("unknown page fault.\n");
       break;
