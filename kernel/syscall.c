@@ -36,19 +36,19 @@ ssize_t sys_user_exit(uint64 code) {
   sprint("User exit with code:%d.\n", code);
   // reclaim the current process, and reschedule. added @lab3_1
   // 释放堆
-  // int free_block_filter[MAX_HEAP_PAGES];
-	// memset(free_block_filter, 0, MAX_HEAP_PAGES);
-	// uint64 heap_bottom = current->user_heap.heap_bottom;
-	// for (int i = 0; i < current->user_heap.free_pages_count; i++)
-	// {
-	// 	int index = (current->user_heap.free_pages_address[i] - heap_bottom) / PGSIZE; // DoNotUnderstand: 为什么要这样计算
-	// 	free_block_filter[index] = 1;
-	// }
-  // for (uint64 heap_block = current->user_heap.heap_bottom; heap_block < current->user_heap.heap_top; heap_block += PGSIZE) {
-  //   if (free_block_filter[(heap_block - heap_bottom) / PGSIZE])
-  //     continue;
-  //   free_page((void*)(lookup_pa(current->pagetable, heap_block) / PGSIZE * PGSIZE));
-  // }
+  int free_block_filter[MAX_HEAP_PAGES];
+	memset(free_block_filter, 0, MAX_HEAP_PAGES);
+	uint64 heap_bottom = current->user_heap.heap_bottom;
+	for (int i = 0; i < current->user_heap.free_pages_count; i++)
+	{
+		int index = (current->user_heap.free_pages_address[i] - heap_bottom) / PGSIZE; // DoNotUnderstand: 为什么要这样计算
+		free_block_filter[index] = 1;
+	}
+  for (uint64 heap_block = current->user_heap.heap_bottom; heap_block < current->user_heap.heap_top; heap_block += PGSIZE) {
+    if (free_block_filter[(heap_block - heap_bottom) / PGSIZE])
+      continue;
+    free_page((void*)(lookup_pa(current->pagetable, heap_block) / PGSIZE * PGSIZE));
+  }
   free_process( current );
   schedule();
   return 0;
