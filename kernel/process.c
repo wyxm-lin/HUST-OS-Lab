@@ -74,7 +74,7 @@ void switch_to(process *proc)
 	故而修改分配机制
 
 	需要注意到虚拟地址必须连续，故而在所有的free块中，如果没有找到可以直接放下的话，应该按照如下方式去进行分配
-		如果最大的free块的后面恰好是g_ufree_page的话，就使用该free块
+		如果最大的free块恰好可以接上g_ufree_page的话，就使用该free块
 		否则，直接从g_ufree_page开始分配
 
 	同时根据头哥的两个测试代码，其实无须过多考虑free的问题
@@ -288,7 +288,9 @@ static int is_need_st_is_g_ufree_page(uint64 n, uint64 *va_ptr)
 	}
 	// 判断虚拟地址最大的free块的后面是不是g_ufree_page
 	// sprint("max_va is %p, g_ufree_page is %p\n", max_va, g_ufree_page);
-	if (max_va / PGSIZE + 1 == g_ufree_page / PGSIZE)
+	// if (max_va / PGSIZE + 1 == g_ufree_page / PGSIZE) // comment:该行考虑不严谨
+	m_rib* max_pa = (m_rib*)user_va_to_pa((pagetable_t)current->pagetable, (void *)max_va);
+	if (max_va + max_pa->cap == g_ufree_page)
 	{
 		// 从当前free块开始分配
 		*va_ptr = max_va + sizeof(m_rib); // 设置返回的va
