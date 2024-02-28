@@ -1,1 +1,1 @@
-riscv64-unknown-elf-objdump -d ../hostfs_root/bin/app_mkdir > asm.txt
+riscv64-unknown-elf-objdump -S exe -d > log

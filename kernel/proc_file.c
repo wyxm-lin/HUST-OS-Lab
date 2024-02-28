@@ -278,18 +278,18 @@ int do_exec(char *path_, char *arg_)
 		查看main函数的起始代码
 		搜索前几行汇编代码，观察sp等等寄存器的变化，并搜索资料，并不断修改app_mkdir.c文件，对比汇编代码有哪些是一直几乎不变的，
 		再加上死扣这几行不变的。
-		
+
 		最终
 		得知
 		current->trapframe->regs.a0的值是argc
 		current->trapframe->regs.a1的值是argv
-	
+
 	*/
 
 	// sprint("origin sp is %lx\n", current->trapframe->regs.sp);
 	// 一级指针
 	uint64 argv_va = current->trapframe->regs.sp - ArgLen - 1;
-	argv_va = argv_va - argv_va % 8; // 按8字节对齐(方便指针指向该位置) 
+	argv_va = argv_va - argv_va % 8; // 按8字节对齐(方便指针指向该位置)
 	uint64 argv_pa = (uint64)user_va_to_pa(current->pagetable, (void *)argv_va);
 	strcpy((char *)argv_pa, arg);
 
@@ -298,8 +298,8 @@ int do_exec(char *path_, char *arg_)
 	uint64 argvs_pa = (uint64)user_va_to_pa(current->pagetable, (void *)argvs_va);
 	*(uint64 *)argvs_pa = argv_va; // 存储一级指针的虚地址
 
-	current->trapframe->regs.a0 = 1; // 设置argc的值(此处为1)
-	current->trapframe->regs.a1 = argvs_va; // 设置argv的值
+	current->trapframe->regs.a0 = 1;						// 设置argc的值(此处为1)
+	current->trapframe->regs.a1 = argvs_va;					// 设置argv的值
 	current->trapframe->regs.sp = argvs_va - argvs_va % 16; // 按照16对齐
 
 	// sprint("next sp is %lx\n", current->trapframe->regs.sp);
