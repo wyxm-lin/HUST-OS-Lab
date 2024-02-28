@@ -57,6 +57,7 @@ void handle_mtimer_trap() {
 //
 void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
   sprint("handle_page_fault: %lx\n", stval);
+  // sprint("the mcause is %d\n", mcause);
   switch (mcause) {
     case CAUSE_STORE_PAGE_FAULT:
       // TODO (lab2_3): implement the operations that solve the page fault to
@@ -68,21 +69,26 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
         void* pa = alloc_page();
         pte_t* pte = page_walk(current->pagetable, stval, 1);
         if ((RSW((*pte))) == True) {
+          // sprint("fafaf\n");
           uint64 origin_pa = PTE2PA(*pte);
           free_page((void*)origin_pa); // 尝试释放掉原来的内存
         }
         *pte = PA2PTE(pa) | PTE_V | prot_to_type(PROT_WRITE | PROT_READ, 1);
       }
       break;
-    case CAUSE_LOAD_PAGE_FAULT:
-      {
-        pte_t* pte = page_walk(current->pagetable, stval, 0);
-        if (*pte & PTE_R) {
-          sprint("can read\n");
-        }
-        sprint("come here : load page fault\n");
-        break;
-      }
+    // case CAUSE_LOAD_PAGE_FAULT:
+    //   {
+    //     pte_t* pte = page_walk(current->pagetable, stval, 0);
+    //     sprint("pa is %0x\n", PTE2PA(*pte));
+    //     if (*pte & PTE_V) {
+    //       sprint("valid\n");
+    //     }
+    //     if (*pte & PTE_R) {
+    //       sprint("can read\n");
+    //     }
+    //     sprint("come here : load page fault\n");
+    //     break;
+    //   }
     default:
       sprint("unknown page fault.\n");
       break;

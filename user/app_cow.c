@@ -16,15 +16,19 @@ int main(void) {
   printpa(heap_data);
   int pid = fork();
   if (pid == 0) {
+    // printu("%p\n", &heap_data[0]);
+    // printu("%p\n", heap_data);
     printu("the physical address of child process heap before copy on write is: ");
     printpa(heap_data);
-    int a = 1;
-    printu("%p\n",&a);
-    printu("%d\n", heap_data[0]);
+
+    // int a = heap_data[0];
+    // printu("%d\n", a);
+    // printu("%p\n",&a);
+    // printu("%d\n", heap_data[0]);
     // printu("a's address is %p\n", &a);
     // printu("the data is %d\n", a);
-    printu("the physical address of child process heap before copy on write is: ");
-    printpa(heap_data);
+    // printu("the physical address of child process heap before copy on write is: ");
+    // printpa(heap_data);
     heap_data[0] = 0;
     printu("the physical address of child process heap after copy on write is: ");
     printpa(heap_data);

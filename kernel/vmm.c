@@ -219,7 +219,7 @@ void print_proc_vmspace(process* proc) {
 }
 
 void cow_vm_map(pagetable_t page_dir, uint64 va, uint64 pa) {
-  va = ROUNDDOWN(va, PGSIZE);
   pte_t *pte = page_walk(page_dir, va, 1);
-  *pte = PA2PTE(pa) | PTE_V | PTE_R | PTE_X | PTE_U | PTE_RSW;
+  *pte = PA2PTE(pa) | PTE_V | PTE_R | PTE_U | PTE_RSW | PTE_A;
+  ref_insert(pa);
 }

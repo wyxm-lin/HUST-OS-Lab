@@ -410,8 +410,11 @@ void free_page(void *pa)
 {
 	if (((uint64)pa % PGSIZE) != 0 || (uint64)pa < free_mem_start_addr || (uint64)pa >= free_mem_end_addr)
 		panic("free_page 0x%lx \n", pa);
-	if (ref_erase((uint64)pa) == False)
+	if (ref_erase((uint64)pa) == False) {
+		// sprint("cnt is not zero\n");
 		return;
+	}
+		
 	// insert a physical page to g_free_mem_list
 	list_node *n = (list_node *)pa;
 	n->next = g_free_mem_list.next;
