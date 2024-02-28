@@ -403,4 +403,11 @@ void exec_clean(process* p) {
 
     p->total_mapped_region = 4;
     // sprint("lgm:exec_clean: p->total_mapped_region = %d\n", p->total_mapped_region);
+
+    // initialize files_struct
+    // p->pfiles = init_proc_file_management();
+    // sprint("in alloc_proc. build proc_file_management successfully.\n");
+
+    p->wait_pid = 0; // 没有需要等待的子进程
+    p->parent = NULL; // 设置为没有父进程
 }

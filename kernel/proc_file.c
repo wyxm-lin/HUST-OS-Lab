@@ -281,6 +281,7 @@ static void exec_bincode(process *p, char *path)
     sprint("Application: %s\n", path);
     // 加载ehdr
     int fp = do_open(path, O_RDONLY);
+    // sprint("the fp = %d\n", fp);
     spike_file_t *f = (spike_file_t *)(get_opened_file(fp)->f_dentry->dentry_inode->i_fs_info); // 看第134行。。。。
     elf_header ehdr;
     if (spike_file_read(f, &ehdr, sizeof(elf_header)) != sizeof(elf_header))
@@ -351,6 +352,7 @@ static void exec_bincode(process *p, char *path)
     }
     // 设置tramframe
     p->trapframe->epc = ehdr.entry;
+    do_close(fp); // NOTE:importat!!!!!!!!!!!!!!!!!!!!
     sprint("Application program entry point (virtual address): 0x%lx\n", p->trapframe->epc);
 }
 
