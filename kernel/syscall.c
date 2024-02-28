@@ -35,7 +35,7 @@ ssize_t sys_user_exit(uint64 code) {
   // sprint("User exit with code:%d. the pid is %d\n", code, current->pid);
   sprint("User exit with code:%d.\n", code);
   // reclaim the current process, and reschedule. added @lab3_1
-  // 释放堆
+  // 释放堆(准确来说 所有的内存什么的都要释放。。。能过就好，等写challengeX的时候优化)
   int free_block_filter[MAX_HEAP_PAGES];
 	memset(free_block_filter, 0, MAX_HEAP_PAGES);
 	uint64 heap_bottom = current->user_heap.heap_bottom;
