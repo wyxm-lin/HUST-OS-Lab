@@ -32,7 +32,6 @@ static void handle_syscall(trapframe *tf)
 	// note:将结果存入a0中
 	
 	int ret = do_syscall(tf->regs.a0, tf->regs.a1, tf->regs.a2, tf->regs.a3, tf->regs.a4, tf->regs.a5, tf->regs.a6, tf->regs.a7);
-	// sprint("in function handle_syscall, the ret is %0x and the function will return\n", ret);
 	tf->regs.a0 = ret;
 }
 
@@ -45,7 +44,7 @@ static uint64 g_ticks[NCPU] = { 0 };
 void handle_mtimer_trap()
 {
 	uint64 hartid = read_tp();
-	sprint("Ticks %d\n", g_ticks[hartid]);
+	sprint("hartid = %lld: Ticks %d\n", hartid, g_ticks[hartid]);
 	// TODO (lab1_3): increase g_ticks to record this "tick", and then clear the "SIP"
 	// field in sip register.
 	// hint: use write_csr to disable the SIP_SSIP bit in sip.
@@ -79,11 +78,8 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval)
 		}
 		break;
 	default:
-	{
-		// sprint("unknown page fault.\n");
 		panic("unknown page fault.\n");
 		break;
-	}
 	}
 }
 
@@ -147,8 +143,8 @@ void smode_trap_handler(void)
 		handle_user_page_fault(cause, read_csr(sepc), read_csr(stval));
 		break;
 	default:
-		sprint("smode_trap_handler(): unexpected scause %p\n", read_csr(scause));
-		sprint("            sepc=%p stval=%p\n", read_csr(sepc), read_csr(stval));
+		sprint("hartid = %lld: smode_trap_handler(): unexpected scause %p\n", hartid, read_csr(scause));
+		sprint("hartid = %lld:             sepc=%p stval=%p\n", hartid, read_csr(sepc), read_csr(stval));
 		panic("unexpected exception happened.\n");
 		break;
 	}

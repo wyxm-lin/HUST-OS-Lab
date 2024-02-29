@@ -39,7 +39,7 @@ ssize_t sys_user_exit(uint64 code)
 {
 	uint64 hartid = read_tp();
 	
-	sprint("User exit with code:%d.\n", code);
+	sprint("hartid = %lld: User(pid = %d) exit with code:%d.\n", hartid, current[hartid]->pid, code);
 	// reclaim the current process, and reschedule. added @lab3_1
 	free_process(current[hartid]);
 	if (current[hartid]->parent != NULL && current[hartid]->parent->waitpid == current[hartid]->pid) {
@@ -99,7 +99,7 @@ ssize_t sys_user_fork()
 {
 	uint64 hartid = read_tp();
 
-	sprint("User call fork.\n");
+	sprint("hartid = %lld: User(pid = %d) call fork.\n", hartid, current[hartid]->pid);
 	return do_fork(current[hartid]);
 }
 
@@ -283,9 +283,7 @@ int sys_user_exec(char *pathva, char *arg)
 	
 	char *pathpa = (char *)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), pathva);
 	char* argpa = (char* )user_va_to_pa((pagetable_t)(current[hartid]->pagetable), arg);
-	// sprint("in function sys_user_exec, pathpa is %s, argva is %s\n", pathpa, argpa);
 	int ret = do_exec(pathpa, argpa);
-	// sprint("sys_user_exec function will return\n");
 	return ret;
 }
 

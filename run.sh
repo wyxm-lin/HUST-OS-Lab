@@ -1,1 +1,1 @@
-spike -p2 ./obj/riscv-pke /bin/hello_world
+spike -p2 ./obj/riscv-pke /bin/hello_world /bin/hello_world

@@ -75,6 +75,8 @@ size_t argc = 0;
 
 process *load_user_program()
 {
+    uint64 hartid = read_tp();
+    
     if (argc != 0) {
         argc --;
         if (argc == 0)
@@ -84,18 +86,17 @@ process *load_user_program()
     process *proc;
 
     proc = alloc_process();
-    sprint("User application is loading.\n");
+    sprint("hartid = %lld: User application is loading.\n", hartid);
 
     // retrieve command line arguements
     if (HasParsed == False) {
         HasParsed = True;
         argc = parse_args(&arg_bug_msg);
-        sprint("argc is %d\n", argc);
         if (!argc)
             panic("You need to specify the application program!\n");
     }
 
-    uint64 hartid = read_tp();
+    
 
     load_bincode_from_host_elf(proc, arg_bug_msg.argv[hartid]);
     return proc;
@@ -139,7 +140,7 @@ int s_start(void)
         fs_init();
     }
 
-    sprint("Switch to user mode...\n");
+    sprint("hartid = %lld: Switch to user mode...\n", hartid);
     // the application code (elf) is first loaded into memory, and then put into execution
     // added @lab3_1
     insert_to_ready_queue(load_user_program());

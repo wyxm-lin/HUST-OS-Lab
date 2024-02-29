@@ -70,6 +70,8 @@ elf_status elf_init(elf_ctx *ctx, void *info)
 //
 elf_status elf_load(elf_ctx *ctx)
 {
+	uint64 hartid = read_tp();
+
 	// elf_prog_header structure is defined in kernel/elf.h
 	elf_prog_header ph_addr;
 	int i, off;
@@ -108,12 +110,12 @@ elf_status elf_load(elf_ctx *ctx)
 		if (ph_addr.flags == (SEGMENT_READABLE | SEGMENT_EXECUTABLE))
 		{
 			((process *)(((elf_info *)(ctx->info))->p))->mapped_info[j].seg_type = CODE_SEGMENT;
-			sprint("CODE_SEGMENT added at mapped info offset:%d\n", j);
+			sprint("hartid = %lld: CODE_SEGMENT added at mapped info offset:%d\n", hartid, j);
 		}
 		else if (ph_addr.flags == (SEGMENT_READABLE | SEGMENT_WRITABLE))
 		{
 			((process *)(((elf_info *)(ctx->info))->p))->mapped_info[j].seg_type = DATA_SEGMENT;
-			sprint("DATA_SEGMENT added at mapped info offset:%d\n", j);
+			sprint("hartid = %lld: DATA_SEGMENT added at mapped info offset:%d\n", hartid, j);
 		}
 		else
 			panic("unknown program segment encountered, segment flag:%d.\n", ph_addr.flags);
@@ -127,7 +129,6 @@ elf_status elf_load(elf_ctx *ctx)
 //
 // load the elf of user application, by using the spike file interface.
 //
-// comment:修改为由vfs读取文件 by teacher assistant
 void load_bincode_from_host_elf(process *p, char *filename)
 {
 	uint64 hartid = read_tp();

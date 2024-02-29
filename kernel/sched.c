@@ -18,7 +18,7 @@ void insert_to_ready_queue(process *proc)
 	if (proc == NULL) {
 		return;
 	}
-	sprint("going to insert process %d to ready queue.\n", proc->pid);
+	sprint("hartid = %lld going to insert process %d to ready queue.\n", hartid, proc->pid);
 	// if the queue is empty in the beginning
 	if (ready_queue_head[hartid] == NULL)
 	{
@@ -95,6 +95,6 @@ void schedule()
 	ready_queue_head[hartid] = ready_queue_head[hartid]->queue_next;
 
 	current[hartid]->status = RUNNING;
-	sprint("going to schedule process %d to run.\n", current[hartid]->pid);
+	sprint("hartid = %lld: going to schedule process %d to run.\n", hartid, current[hartid]->pid);
 	switch_to(current[hartid]);
 }

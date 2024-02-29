@@ -30,6 +30,8 @@ static void handle_timer()
 //
 void handle_mtrap()
 {
+    uint64 hartid = read_tp();
+
     uint64 mcause = read_csr(mcause);
     switch (mcause)
     {
@@ -58,8 +60,8 @@ void handle_mtrap()
         break;
 
     default:
-        sprint("machine trap(): unexpected mscause %p\n", mcause);
-        sprint("            mepc=%p mtval=%p\n", read_csr(mepc), read_csr(mtval));
+        sprint("hartid = %lld: machine trap(): unexpected mscause %p\n", hartid, mcause);
+        sprint("hartid = %lld:            mepc=%p mtval=%p\n", hartid, read_csr(mepc), read_csr(mtval));
         panic("unexpected exception happened in M-mode.\n");
         break;
     }

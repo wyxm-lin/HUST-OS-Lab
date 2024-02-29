@@ -45,6 +45,8 @@ void fs_init(void)
 //
 proc_file_management *init_proc_file_management(void)
 {
+	uint64 hartid = read_tp();
+
 	proc_file_management *pfiles = (proc_file_management *)alloc_page();
 	pfiles->cwd = vfs_root_dentry; // by default, cwd is the root
 	pfiles->nfiles = 0;
@@ -52,7 +54,7 @@ proc_file_management *init_proc_file_management(void)
 	for (int fd = 0; fd < MAX_FILES; ++fd)
 		pfiles->opened_files[fd].status = FD_NONE;
 
-	sprint("FS: created a file management struct for a process.\n");
+	sprint("hartid = %lld: FS: created a file management struct for a process.\n", hartid);
 	return pfiles;
 }
 
@@ -276,25 +278,6 @@ int do_exec(char *path_, char *arg_)
 	// 释放当前进程的资源
 	exec_clean(current[hartid]);
 
-	/*
-		我真的要哭死
-
-		最开始一直在仅仅通过sp寄存器写栈。。。。发现main函数中打印的地址都不对。。。
-
-		多次修改app_mkdir.c的内容 并编译
-		最后再反汇编该二进制文件
-		查看main函数的起始代码
-		搜索前几行汇编代码，观察sp等等寄存器的变化，并搜索资料，并不断修改app_mkdir.c文件，对比汇编代码有哪些是一直几乎不变的，
-		再加上死扣这几行不变的。
-
-		最终
-		得知
-		current->trapframe->regs.a0的值是argc
-		current->trapframe->regs.a1的值是argv
-
-	*/
-
-	// sprint("origin sp is %lx\n", current->trapframe->regs.sp);
 	// 一级指针
 	uint64 argv_va = current[hartid]->trapframe->regs.sp - ArgLen - 1;
 	argv_va = argv_va - argv_va % 8; // 按8字节对齐(方便指针指向该位置)
@@ -310,10 +293,7 @@ int do_exec(char *path_, char *arg_)
 	current[hartid]->trapframe->regs.a1 = argvs_va;					// 设置argv的值
 	current[hartid]->trapframe->regs.sp = argvs_va - argvs_va % 16; // 按照16对齐
 
-	// sprint("next sp is %lx\n", current->trapframe->regs.sp);
-
 	load_bincode_from_host_elf(current[hartid], path); // 此处修改了s态切换到用户态的返回地址
-	// sprint("do_exec function will return\n");
 
 	return -1;
 }
