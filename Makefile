@@ -99,6 +99,12 @@ USER_O_CPPS 		:= user/app_echo.c user/user_lib.c
 USER_O_OBJS  		:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_O_CPPS)))
 
 USER_O_TARGET 	:= $(HOSTFS_ROOT)/bin/app_echo
+
+USER_O_CPPS 		:= user/hello_world.c user/user_lib.c
+
+USER_O_OBJS  		:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_O_CPPS)))
+
+USER_O_TARGET 	:= $(HOSTFS_ROOT)/bin/hello_world
 #------------------------targets------------------------
 $(OBJ_DIR):
 	@-mkdir -p $(OBJ_DIR)	
@@ -182,7 +188,7 @@ all: $(KERNEL_TARGET) $(USER_TARGET) $(USER_E_TARGET) $(USER_M_TARGET) $(USER_T_
 
 run: $(KERNEL_TARGET) $(USER_TARGET) $(USER_E_TARGET) $(USER_M_TARGET) $(USER_T_TARGET) $(USER_C_TARGET) $(USER_O_TARGET)
 	@echo "********************HUST PKE********************"
-	spike $(KERNEL_TARGET) /bin/app_shell
+	spike -p2 $(KERNEL_TARGET) /bin/app_shell
 
 # need openocd!
 gdb:$(KERNEL_TARGET) $(USER_TARGET)

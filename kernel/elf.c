@@ -130,7 +130,9 @@ elf_status elf_load(elf_ctx *ctx)
 // comment:修改为由vfs读取文件 by teacher assistant
 void load_bincode_from_host_elf(process *p, char *filename)
 {
-	sprint("Application: %s\n", filename);
+	uint64 hartid = read_tp();
+
+	sprint("hartid = %lld: Application: %s\n", hartid, filename);
 
 	// elf loading. elf_ctx is defined in kernel/elf.h, used to track the loading process.
 	elf_ctx elfloader;
@@ -157,5 +159,5 @@ void load_bincode_from_host_elf(process *p, char *filename)
 	// close the vfs file
 	vfs_close(info.f);
 
-	sprint("Application program entry point (virtual address): 0x%lx\n", p->trapframe->epc);
+	sprint("hartid = %lld: Application program entry point (virtual address): 0x%lx\n", hartid, p->trapframe->epc);
 }

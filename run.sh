@@ -1,0 +1,1 @@
+spike -p2 ./obj/riscv-pke /bin/hello_world
