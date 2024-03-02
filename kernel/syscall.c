@@ -295,12 +295,10 @@ int sys_user_wait(int pid)
 	if (pid == 0)
 	{
 		panic("wait for pid 0 is not allowed.\n");
-		return -1; // never reach here
 	}
 	if (procs[pid].parent != current[hartid])
 	{
 		panic("wait for a process that is not a child.\n");
-		return -1;
 	}
 	current[hartid]->status = BLOCKED;
 	current[hartid]->waitpid = pid;

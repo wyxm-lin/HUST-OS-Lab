@@ -274,6 +274,17 @@ int do_fork(process *parent)
 			child->total_mapped_region++;
 			sprint("hartid = %lld: do_fork map code segment at pa:%lx of parent to child at va:%lx.\n", hartid, lookup_pa(parent->pagetable, parent->mapped_info[i].va), parent->mapped_info[i].va); // 增添此行(根据doc打印)
 			break;
+		case DATA_SEGMENT:
+			child->mapped_info[child->total_mapped_region].seg_type = DATA_SEGMENT;
+			child->mapped_info[child->total_mapped_region].va = parent->mapped_info[i].va;
+			child->mapped_info[child->total_mapped_region].npages = parent->mapped_info[i].npages;
+			for (int i = 0; i < child->mapped_info[child->total_mapped_region].npages; i++) {
+				uint64 child_pa = (uint64)alloc_page();
+				memcpy((void *)child_pa, (void *)lookup_pa(parent->pagetable, child->mapped_info[child->total_mapped_region].va + i * PGSIZE), PGSIZE);
+				user_vm_map((pagetable_t)child->pagetable, child->mapped_info[child->total_mapped_region].va + i * PGSIZE, PGSIZE, child_pa, prot_to_type(PROT_WRITE | PROT_READ, 1));
+			}
+			child->total_mapped_region++;
+			break;
 		}
 	}
 
