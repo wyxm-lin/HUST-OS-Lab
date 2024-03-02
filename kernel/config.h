@@ -16,10 +16,11 @@
 // the ending physical address that PKE observes. added @lab2_1
 #define PHYS_TOP (DRAM_BASE + PKE_MAX_ALLOWABLE_RAM)
 
-typedef enum MyStatus {
+typedef enum MyStatus
+{
     False,
     True
-}MyStatus;
+} MyStatus;
 
 #define INVALID -1
 

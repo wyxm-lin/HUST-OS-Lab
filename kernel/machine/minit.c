@@ -107,13 +107,13 @@ void m_start(uintptr_t hartid, uintptr_t dtb)
     // sprint is also defined in spike_interface/spike_utils.c
     spinlock_lock(&CoreBootLock);
 
-    if (BSPExist == False) 
+    if (BSPExist == False)
     {
         BSPExist = True;
         spike_file_init();
         init_dtb(dtb);
     }
-    
+
     sprint("In m_start, hartid:%d\n", hartid);
 
     // save the address of trap frame for interrupt in M mode to "mscratch". added @lab1_2
