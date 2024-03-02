@@ -259,3 +259,10 @@ void print_proc_vmspace(process *proc)
 		sprint(", mapped to pa:%lx\n", lookup_pa(proc->pagetable, proc->mapped_info[i].va));
 	}
 }
+
+// added@lab3_challenge2
+void cow_vm_map(pagetable_t page_dir, uint64 va, uint64 pa) {
+	pte_t *pte = page_walk(page_dir, va, 1);
+  	*pte = PA2PTE(pa) | PTE_V | PTE_R | PTE_U | PTE_RSW | PTE_A;
+	ref_insert(pa);
+}

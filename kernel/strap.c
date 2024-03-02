@@ -74,6 +74,10 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval)
 		{
 			void *pa = alloc_page();
 			pte_t *pte = page_walk(current[hartid]->pagetable, stval, 1);
+			if ((RSW((*pte))) == True) {
+				uint64 origin_pa = PTE2PA(*pte);
+				free_page((void *)origin_pa);
+			}
 			*pte = PA2PTE(pa) | PTE_V | prot_to_type(PROT_WRITE | PROT_READ, 1);
 		}
 		break;

@@ -47,6 +47,11 @@ void free_page(void *pa)
 		spinlock_unlock(&FreePageLock);
 		panic("free_page 0x%lx \n", pa);
 	}
+	if (ref_erase((uint64)pa) == False)
+	{
+		spinlock_unlock(&FreePageLock);
+		return;
+	}
 
 	// insert a physical page to g_free_mem_list
 	list_node *n = (list_node *)pa;
@@ -100,4 +105,65 @@ void pmm_init()
 	sprint("kernel memory manager is initializing ...\n");
 	// create the list of free pages
 	create_freepage_list(free_mem_start_addr, free_mem_end_addr);
+}
+
+// added@lab3_challenge3
+MemoryRefCount MemoryRefCountList[MemoryRefCountMAX];
+uint64 RefTotal = 0;
+spinlock_t MemoryRefCountLock; // 只用一个锁
+
+// NOTE:在使用此函数时，一定获得了锁
+enum MyStatus ref_find(uint64 pa)
+{
+	// spinlock_lock(&MemoryRefCountLock);
+	for (int i = 0; i < RefTotal; i++)
+	{
+		if (MemoryRefCountList[i].pa == pa)
+		{
+			MemoryRefCountList[i].ref++;
+			// spinlock_unlock(&MemoryRefCountLock);
+			return True;
+		}
+	}
+	// spinlock_unlock(&MemoryRefCountLock);
+	return False;
+}
+
+void ref_insert(uint64 pa)
+{
+	spinlock_lock(&MemoryRefCountLock);
+	if (ref_find(pa) == True) {
+		spinlock_unlock(&MemoryRefCountLock);
+		return;
+	}
+	if (RefTotal >= MemoryRefCountMAX)
+		panic("RefTotal is out of range\n");
+	MemoryRefCountList[RefTotal].pa = pa;
+	MemoryRefCountList[RefTotal].ref = 1;
+	RefTotal++;
+	spinlock_unlock(&MemoryRefCountLock);
+}
+
+enum MyStatus ref_erase(uint64 pa)
+{
+	spinlock_lock(&MemoryRefCountLock);
+	for (int i = 0; i < RefTotal; i++)
+	{
+		if (MemoryRefCountList[i].pa == pa)
+		{
+			MemoryRefCountList[i].ref--;
+			if (MemoryRefCountList[i].ref == 0)
+			{
+				MemoryRefCountList[i].pa = MemoryRefCountList[RefTotal - 1].pa;
+				MemoryRefCountList[i].ref = MemoryRefCountList[RefTotal - 1].ref;
+				RefTotal--;
+				spinlock_unlock(&MemoryRefCountLock);
+				return True;
+			}
+			spinlock_unlock(&MemoryRefCountLock);
+			return False;
+		}
+	}
+	spinlock_unlock(&MemoryRefCountLock);
+	return True;
 }
