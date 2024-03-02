@@ -38,11 +38,12 @@ ssize_t sys_user_print(const char *buf, size_t n)
 ssize_t sys_user_exit(uint64 code)
 {
 	uint64 hartid = read_tp();
-	
+
 	sprint("hartid = %lld: User(pid = %d) exit with code:%d.\n", hartid, current[hartid]->pid, code);
 	// reclaim the current process, and reschedule. added @lab3_1
 	free_process(current[hartid]);
-	if (current[hartid]->parent != NULL && current[hartid]->parent->waitpid == current[hartid]->pid) {
+	if (current[hartid]->parent != NULL && current[hartid]->parent->waitpid == current[hartid]->pid)
+	{
 		current[hartid]->parent->status = READY;
 		insert_to_ready_queue(current[hartid]->parent);
 	}
@@ -272,7 +273,7 @@ ssize_t sys_user_link(char *vfn1, char *vfn2)
 ssize_t sys_user_unlink(char *vfn)
 {
 	uint64 hartid = read_tp();
-	
+
 	char *pfn = (char *)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), (void *)vfn);
 	return do_unlink(pfn);
 }
@@ -280,9 +281,9 @@ ssize_t sys_user_unlink(char *vfn)
 int sys_user_exec(char *pathva, char *arg)
 {
 	uint64 hartid = read_tp();
-	
+
 	char *pathpa = (char *)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), pathva);
-	char* argpa = (char* )user_va_to_pa((pagetable_t)(current[hartid]->pagetable), arg);
+	char *argpa = (char *)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), arg);
 	int ret = do_exec(pathpa, argpa);
 	return ret;
 }
@@ -291,7 +292,7 @@ extern process procs[NPROC];
 int sys_user_wait(int pid)
 {
 	uint64 hartid = read_tp();
-	
+
 	if (pid == 0)
 	{
 		panic("wait for pid 0 is not allowed.\n");
@@ -304,6 +305,22 @@ int sys_user_wait(int pid)
 	current[hartid]->waitpid = pid;
 	schedule();
 	return pid;
+}
+
+// added@lab3_challenge2
+uint64 sys_user_sem_new(int sem)
+{
+	return sem_build(sem);
+}
+
+ssize_t sys_user_sem_P(uint64 sem)
+{
+	return P(sem);
+}
+
+ssize_t sys_user_sem_V(uint64 sem)
+{
+	return V(sem);
 }
 
 //
@@ -356,11 +373,17 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
 		return sys_user_link((char *)a1, (char *)a2);
 	case SYS_user_unlink:
 		return sys_user_unlink((char *)a1);
-	case SYS_user_exec: {
+	case SYS_user_exec:
 		return sys_user_exec((char *)a1, (char *)a2);
-	}
 	case SYS_user_wait:
 		return sys_user_wait(a1);
+	// added@lab3_challenge2
+	case SYS_user_sem_new:
+		return sys_user_sem_new(a1);
+	case SYS_user_sem_P:
+		return sys_user_sem_P(a1);
+	case SYS_user_sem_V:
+		return sys_user_sem_V(a1);
 	default:
 		panic("Unknown syscall %ld \n", a0);
 	}

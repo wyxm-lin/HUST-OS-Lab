@@ -35,6 +35,11 @@
 #define SYS_user_exec (SYS_user_base + 30)
 #define SYS_user_wait (SYS_user_base + 31)
 
+// added @ lab3_challenge2
+#define SYS_user_sem_new (SYS_user_base + 32)
+#define SYS_user_sem_P (SYS_user_base + 33)
+#define SYS_user_sem_V (SYS_user_base + 34)
+
 long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, long a7);
 
 #endif

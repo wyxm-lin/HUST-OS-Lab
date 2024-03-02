@@ -9,4 +9,10 @@
 void insert_to_ready_queue( process* proc );
 void schedule();
 
+// added@lab3_challenge2
+#define SEM_MAX 128
+uint64 sem_build(int val);
+int P(uint64 sem);
+int V(uint64 sem);
+
 #endif

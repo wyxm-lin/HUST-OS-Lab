@@ -5,8 +5,9 @@
 #include "sched.h"
 #include "spike_interface/spike_utils.h"
 #include "sync_utils.h"
+#include "spike_interface/atomic.h"
 
-process *ready_queue_head[NCPU] = { NULL };
+process *ready_queue_head[NCPU] = {NULL};
 
 //
 // insert a process, proc, into the END of ready queue.
@@ -15,7 +16,8 @@ void insert_to_ready_queue(process *proc)
 {
 	uint64 hartid = read_tp();
 
-	if (proc == NULL) {
+	if (proc == NULL)
+	{
 		return;
 	}
 	sprint("hartid = %lld going to insert process %d to ready queue.\n", hartid, proc->pid);
@@ -64,7 +66,7 @@ void schedule()
 		// FREE and ZOMBIE, we should shutdown the emulated RISC-V machine.
 		int should_shutdown = 1;
 
-		for (int i = 0; i < NPROC; i++) 
+		for (int i = 0; i < NPROC; i++)
 		{
 			if ((procs[i].status != FREE) && (procs[i].status != ZOMBIE) && procs[i].hartid == hartid)
 			{
@@ -77,10 +79,12 @@ void schedule()
 		{
 			sprint("hartid = %lld: no more ready processes\n", hartid);
 			sync_barrier(&ExitCoreCount, NCPU);
-			if (hartid == CTL_CORE) {
+			if (hartid == CTL_CORE)
+			{
 				shutdown(0);
 			}
-			else {
+			else
+			{
 				return;
 			}
 		}
@@ -97,4 +101,72 @@ void schedule()
 	current[hartid]->status = RUNNING;
 	sprint("hartid = %lld: going to schedule process %d to run.\n", hartid, current[hartid]->pid);
 	switch_to(current[hartid]);
+}
+
+// added @lab3_challenge2
+int Sems[SEM_MAX];
+uint64 SemCount = 0;
+spinlock_t SemCountLock;
+process *waiting_sem_queue_head[SEM_MAX] = {NULL};
+spinlock_t SemLock[SEM_MAX];
+
+// 在进入此函数前，一定获得了对应的信号量的锁
+static void insert_into_waiting_sem_queue(process *proc, uint64 sem)
+{
+	if (waiting_sem_queue_head[sem] == NULL)
+	{
+		proc->status = BLOCKED; 
+		proc->queue_next = NULL;
+		waiting_sem_queue_head[sem] = proc;
+		return;
+	}
+
+	process *p;
+	for (p = waiting_sem_queue_head[sem]; p->queue_next != NULL; p = p->queue_next)
+		if (p == proc)
+			return;
+
+	if (p == proc)
+		return;
+	p->queue_next = proc;
+	proc->status = BLOCKED;
+	proc->queue_next = NULL;
+
+	return;
+}
+
+uint64 sem_build(int val)
+{
+	spinlock_lock(&SemCountLock);
+	Sems[SemCount++] = val;
+	uint64 ret = SemCount;
+	spinlock_unlock(&SemCountLock);
+	return ret;
+}
+
+int P(uint64 sem)
+{
+	spinlock_lock(&SemLock[sem]);
+	Sems[sem]--;
+	if (Sems[sem] < 0) {
+		insert_into_waiting_sem_queue(current[read_tp()], sem);
+		spinlock_unlock(&SemLock[sem]);
+		schedule();
+		return 0;
+	}
+	spinlock_unlock(&SemLock[sem]);
+	return 0;
+}
+
+int V(uint64 sem) {
+	spinlock_lock(&SemLock[sem]);
+	Sems[sem]++;
+	if (Sems[sem] <= 0) {
+		process *proc = waiting_sem_queue_head[sem];
+		waiting_sem_queue_head[sem] = waiting_sem_queue_head[sem]->queue_next;
+		proc->status = READY;
+		insert_to_ready_queue(proc);
+	}
+	spinlock_unlock(&SemLock[sem]);
+	return 0;
 }

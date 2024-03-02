@@ -38,4 +38,9 @@ int exec(const char *path, char *arg);
 int wait(int pid);
 int execPlus(const char *path, char *argv[]);
 
+// added @ lab3_challenge2
+int sem_new(int sem);
+void sem_P(int sem);
+void sem_V(int sem);
+
 #endif
