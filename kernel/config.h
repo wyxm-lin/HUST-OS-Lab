@@ -21,4 +21,6 @@ typedef enum MyStatus {
     True
 }MyStatus;
 
+#define INVALID -1
+
 #endif

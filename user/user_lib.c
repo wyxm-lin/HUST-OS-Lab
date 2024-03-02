@@ -220,3 +220,12 @@ void sem_V(int sem)
 {
 	do_user_call(SYS_user_sem_V, sem, 0, 0, 0, 0, 0, 0);
 }
+
+// added @ lab4_challenge1
+int read_cwd(char *path) {
+  return do_user_call(SYS_user_cwd, (uint64)path, 0, 0, 0, 0, 0, 0);
+}
+
+int change_cwd(const char *path) {
+  return do_user_call(SYS_user_chdir, (uint64)path, 0, 0, 0, 0, 0, 0);
+}

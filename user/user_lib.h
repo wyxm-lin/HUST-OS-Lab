@@ -43,4 +43,8 @@ int sem_new(int sem);
 void sem_P(int sem);
 void sem_V(int sem);
 
+// added @ lab4_challenge1
+int read_cwd(char* path);
+int change_cwd(const char* path);
+
 #endif

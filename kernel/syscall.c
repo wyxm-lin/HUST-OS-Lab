@@ -328,6 +328,46 @@ ssize_t sys_user_sem_V(uint64 sem)
 	return V(sem);
 }
 
+// added @ lab4_challenge1
+ssize_t sys_user_cwd(uint64 path) {
+	uint64 hartid = read_tp();
+	uint64 pa = (uint64)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), (void *)path);
+	memcpy((char*)pa, current[hartid]->pfiles->cwd->name, strlen(current[hartid]->pfiles->cwd->name));
+	return 0;
+}
+
+static MyStatus is_valid_path(char* path) {
+	if (path[0] == '/') {
+
+	}
+	else if (path[0] == '.') {
+
+	}
+	else {
+		return False;
+	}
+}
+
+ssize_t sys_user_chdir(uint64 path) {
+	uint64 hartid = read_tp();
+
+	char* pa = (char*)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), (void *)path);
+	MyStatus valid = is_valid_path(pa);
+	if (valid == False) {
+		return INVALID;
+	}
+
+	char tmp[MAX_PATH_LEN];
+	memset(tmp, 0, MAX_PATH_LEN);
+	memcpy(tmp, current[hartid]->pfiles->cwd->name, strlen(current[hartid]->pfiles->cwd->name));
+	
+	if (pa[0] == '.') { // 相对路径
+	}
+	else if (pa[0] = '/') { // 绝对路径
+
+	}
+}
+
 //
 // [a0]: the syscall number; [a1] ... [a7]: arguments to the syscalls.
 // returns the code of success, (e.g., 0 means success, fail for otherwise)
@@ -389,6 +429,11 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
 		return sys_user_sem_P(a1);
 	case SYS_user_sem_V:
 		return sys_user_sem_V(a1);
+	// added @ lab4_challenge1
+	case SYS_user_cwd:
+		return sys_user_cwd((uint64)a1);
+	case SYS_user_chdir:
+		return sys_user_chdir((uint64)a1);
 	default:
 		panic("Unknown syscall %ld \n", a0);
 	}
