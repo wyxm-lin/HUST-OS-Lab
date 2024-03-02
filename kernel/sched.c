@@ -14,7 +14,7 @@ process *ready_queue_head[NCPU] = {NULL};
 //
 void insert_to_ready_queue(process *proc)
 {
-	uint64 hartid = read_tp();
+	uint64 hartid = proc->hartid; // NOTE:使用此进行初始化
 
 	if (proc == NULL)
 	{

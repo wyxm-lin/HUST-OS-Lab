@@ -86,6 +86,8 @@ process *load_user_program()
     process *proc;
 
     proc = alloc_process();
+    proc->hartid = hartid; // NOTE:进行初始化
+
     sprint("hartid = %lld: User application is loading.\n", hartid);
 
     // retrieve command line arguements

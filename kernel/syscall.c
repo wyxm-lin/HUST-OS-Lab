@@ -41,12 +41,17 @@ ssize_t sys_user_exit(uint64 code)
 
 	sprint("hartid = %lld: User(pid = %d) exit with code:%d.\n", hartid, current[hartid]->pid, code);
 	// reclaim the current process, and reschedule. added @lab3_1
-	free_process(current[hartid]);
-	if (current[hartid]->parent != NULL && current[hartid]->parent->waitpid == current[hartid]->pid)
-	{
-		current[hartid]->parent->status = READY;
-		insert_to_ready_queue(current[hartid]->parent);
+	
+	if (current[hartid]->parent != NULL && current[hartid]->parent->status == BLOCKED) {
+		if (current[hartid]->parent->waitpid == -1) {
+			insert_to_ready_queue(current[hartid]->parent);
+		}
+		else if (current[hartid]->parent->waitpid == current[hartid]->pid) {
+			insert_to_ready_queue(current[hartid]->parent);
+		}
 	}
+
+	free_process(current[hartid]);
 	schedule();
 	return 0;
 }
