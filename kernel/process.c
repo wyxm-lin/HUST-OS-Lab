@@ -15,6 +15,7 @@
 
 #include "spike_interface/spike_utils.h"
 #include "spike_interface/atomic.h"
+#include "sync_utils.h"
 
 //Two functions defined in kernel/usertrap.S
 extern char smode_trap_vector[];
@@ -23,20 +24,16 @@ extern void return_to_user(trapframe*);
 // current points to the currently running user-mode application.
 process* current[NCPU] = {NULL, NULL};
 spinlock_t current_lock;
+static int UserAppCount = 0;
 
 // 
 // switch to a user-mode process
 //
-extern spinlock_t user_app_lock;
+// extern spinlock_t user_app_lock;
 void switch_to(process* proc) {
-  // panic("stop");
   assert(proc);
 
-  // sprint("in function switch_to: harrid=%d have entry switch_to\n", read_tp());
-  spinlock_lock(&current_lock);
   current[read_tp()] = proc;
-  // sprint("in function switch_to: current[%d] is %p\n", read_tp(), proc);
-  spinlock_unlock(&current_lock);
 
   // write the smode_trap_vector (64-bit func. address) defined in kernel/strap_vector.S
   // to the stvec privilege register, such that trap handler pointed by smode_trap_vector
@@ -60,8 +57,7 @@ void switch_to(process* proc) {
   // set S Exception Program Counter (sepc register) to the elf entry pc.
   write_csr(sepc, proc->trapframe->epc);
 
-  spinlock_unlock(&user_app_lock); // 解锁
-
+  sync_barrier(&UserAppCount, NCPU);
   // return_to_user() is defined in kernel/strap_vector.S. switch to user mode with sret.
   return_to_user(proc->trapframe);
 }

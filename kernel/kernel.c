@@ -60,15 +60,11 @@ int s_start(void) {
   // the application code (elf) is first loaded into memory, and then put into execution
   load_user_program(&user_app[hartid]);
 
+  sprint("hartid = %d: Switch to user mode...\n", hartid); // comment:修改打印信息 将cpu的id打印出
+
   spinlock_unlock(&BootLock); // 释放锁
   sync_barrier(&BootCount, NCPU); // comment:添加同步点
 
-  sprint("hartid = %d: Switch to user mode...\n", hartid); // comment:修改打印信息 将cpu的id打印出
-
-  // panic("stop");
-
-  // switch_to() is defined in kernel/process.c
-  spinlock_lock(&user_app_lock);
   switch_to(&user_app[hartid]);
 
   // we should never reach here.
