@@ -105,6 +105,12 @@ USER_O_CPPS 		:= user/hello_world.c user/user_lib.c
 USER_O_OBJS  		:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_O_CPPS)))
 
 USER_O_TARGET 	:= $(HOSTFS_ROOT)/bin/hello_world
+
+USER_O_CPPS 		:= user/test.c user/user_lib.c
+
+USER_O_OBJS  		:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_O_CPPS)))
+
+USER_O_TARGET 	:= $(HOSTFS_ROOT)/bin/test
 #------------------------targets------------------------
 $(OBJ_DIR):
 	@-mkdir -p $(OBJ_DIR)	

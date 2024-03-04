@@ -47,4 +47,8 @@ void sem_V(int sem);
 int read_cwd(char* path);
 int change_cwd(const char* path);
 
+// added @ challengeX
+int scanfu(const char *s, ...);
+int printu_dir(const char *s, ...);
+
 #endif

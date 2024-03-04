@@ -6,6 +6,8 @@
 
 #include "util/types.h"
 
-int vsnprintf(char* out, size_t n, const char* s, va_list vl);
+int vsnprintf(char *out, size_t n, const char *s, va_list vl);
+
+int vsnscanf(const char *s, const char *format, va_list vl);
 
 #endif

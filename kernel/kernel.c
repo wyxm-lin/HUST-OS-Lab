@@ -79,8 +79,10 @@ process *load_user_program()
     
     if (argc != 0) {
         argc --;
-        if (argc == 0)
+        if (argc == 0) {
+            sprint("come here argc is zero\n");
             return NULL;
+        }       
     }
 
     process *proc;
@@ -145,8 +147,11 @@ int s_start(void)
     sprint("hartid = %lld: Switch to user mode...\n", hartid);
     // the application code (elf) is first loaded into memory, and then put into execution
     // added @lab3_1
-    insert_to_ready_queue(load_user_program());
-
+    process* app = load_user_program();
+    if (app != NULL) {
+        insert_to_ready_queue(app);
+    }
+    
     spinlock_unlock(&CoreBootLock);
     sync_barrier(&CoreBootCount, NCPU);
 

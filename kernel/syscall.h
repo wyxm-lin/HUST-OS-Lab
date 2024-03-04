@@ -44,6 +44,10 @@
 #define SYS_user_cwd (SYS_user_base + 35)
 #define SYS_user_chdir (SYS_user_base + 36)
 
+// added@ challengeX
+#define SYS_user_scanf (SYS_user_base + 37)
+#define SYS_user_print_dir (SYS_user_base + 38)
+
 long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, long a7);
 
 #endif

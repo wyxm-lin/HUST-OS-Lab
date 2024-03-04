@@ -32,6 +32,20 @@ ssize_t sys_user_print(const char *buf, size_t n)
 	return 0;
 }
 
+ssize_t sys_user_print_dir(const char* buf, size_t n) {
+	uint64 hartid = read_tp();
+
+	assert(current[hartid]);
+
+	sprint(USER);
+	sprint(":");
+	char* dir = current[hartid]->pfiles->cwd->name;
+	sprint(dir);
+	char *pa = (char *)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), (void *)buf);
+	sprint(pa);
+	return 0;
+}
+
 //
 // implement the SYS_user_exit syscall
 //
@@ -349,6 +363,7 @@ static MyStatus is_valid_path(char* path) {
 }
 
 ssize_t sys_user_chdir(uint64 path) {
+	return 0;
 	uint64 hartid = read_tp();
 
 	char* pa = (char*)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), (void *)path);
@@ -363,9 +378,18 @@ ssize_t sys_user_chdir(uint64 path) {
 	
 	if (pa[0] == '.') { // 相对路径
 	}
-	else if (pa[0] = '/') { // 绝对路径
+	else if (pa[0] == '/') { // 绝对路径
 
 	}
+	else;
+	return 0;
+}
+
+ssize_t sys_user_scanf(uint64 s) {
+	uint64 hartid = read_tp();
+	char* pa = (char*)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), (void *)s);
+	spike_file_read(stderr, pa, 256);
+	return 0;
 }
 
 //
@@ -434,6 +458,10 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
 		return sys_user_cwd((uint64)a1);
 	case SYS_user_chdir:
 		return sys_user_chdir((uint64)a1);
+	case SYS_user_scanf:
+		return sys_user_scanf((uint64)a1);
+	case SYS_user_print_dir:
+		return sys_user_print_dir((const char *)a1, a2);
 	default:
 		panic("Unknown syscall %ld \n", a0);
 	}

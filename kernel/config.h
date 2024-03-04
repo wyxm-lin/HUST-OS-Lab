@@ -24,4 +24,6 @@ typedef enum MyStatus
 
 #define INVALID -1
 
+#define USER "wyxm"
+
 #endif

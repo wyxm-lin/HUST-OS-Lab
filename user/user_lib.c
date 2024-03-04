@@ -9,6 +9,7 @@
 #include "util/types.h"
 #include "util/snprintf.h"
 #include "kernel/syscall.h"
+#include "util/string.h"
 
 uint64 do_user_call(uint64 sysnum, uint64 a1, uint64 a2, uint64 a3, uint64 a4, uint64 a5, uint64 a6,
 					uint64 a7)
@@ -230,4 +231,31 @@ int read_cwd(char *path)
 int change_cwd(const char *path)
 {
 	return do_user_call(SYS_user_chdir, (uint64)path, 0, 0, 0, 0, 0, 0);
+}
+
+// added @ challengeX
+int scanfu(const char *s, ...)
+{
+	va_list vl;
+	va_start(vl, s);
+	char in[256]; // fixed buffer size.
+	memset(in, 0, sizeof(in));
+	do_user_call(SYS_user_scanf, (uint64)in, 0, 0, 0, 0, 0, 0);
+	vsnscanf(in, s, vl);
+	va_end(vl);
+	return 0;
+}
+
+int printu_dir(const char* s, ...) {
+	va_list vl;
+	va_start(vl, s);
+
+	char out[256]; // fixed buffer size.
+	int res = vsnprintf(out, sizeof(out), s, vl);
+	va_end(vl);
+	const char *buf = out;
+	size_t n = res < sizeof(out) ? res : sizeof(out);
+
+	// make a syscall to implement the required functionality.
+	return do_user_call(SYS_user_print_dir, (uint64)buf, n, 0, 0, 0, 0, 0);
 }

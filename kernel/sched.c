@@ -16,10 +16,10 @@ void insert_to_ready_queue(process *proc)
 {
 	uint64 hartid = proc->hartid; // NOTE:使用此进行初始化
 
-	if (proc == NULL)
-	{
-		return;
-	}
+	// if (proc == NULL)
+	// {
+	// 	return;
+	// }
 	sprint("hartid = %lld going to insert process %d to ready queue.\n", hartid, proc->pid);
 	// if the queue is empty in the beginning
 	if (ready_queue_head[hartid] == NULL)
