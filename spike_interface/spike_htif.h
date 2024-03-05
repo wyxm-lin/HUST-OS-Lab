@@ -6,13 +6,14 @@
 
 #if __riscv_xlen == 64
 #define TOHOST_CMD(dev, cmd, payload) \
-  (((uint64_t)(dev) << 56) | ((uint64_t)(cmd) << 48) | (uint64_t)(payload))
+    (((uint64_t)(dev) << 56) | ((uint64_t)(cmd) << 48) | (uint64_t)(payload))
 #else
-#define TOHOST_CMD(dev, cmd, payload)     \
-  ({                                      \
-    if ((dev) || (cmd)) __builtin_trap(); \
-    (payload);                            \
-  })
+#define TOHOST_CMD(dev, cmd, payload) \
+    ({                                \
+        if ((dev) || (cmd))           \
+            __builtin_trap();         \
+        (payload);                    \
+    })
 #endif
 #define FROMHOST_DEV(fromhost_value) ((uint64_t)(fromhost_value) >> 56)
 #define FROMHOST_CMD(fromhost_value) ((uint64_t)(fromhost_value) << 8 >> 56)
@@ -86,7 +87,7 @@
 #define HTIFSYS_time 1062
 
 #define IS_ERR_VALUE(x) ((unsigned long)(x) >= (unsigned long)-4096)
-#define ERR_PTR(x) ((void*)(long)(x))
+#define ERR_PTR(x) ((void *)(long)(x))
 #define PTR_ERR(x) ((long)(x))
 
 #define AT_FDCWD -100

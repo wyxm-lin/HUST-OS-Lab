@@ -202,7 +202,6 @@ int do_fork(process *parent)
 		case CONTEXT_SEGMENT:
 			*child->trapframe = *parent->trapframe;
 			{
-				
 			}
 			// do_fork map code segment at pa:0000000087f13000 of parent to child at va:0000000000010000.
 			break;
@@ -272,14 +271,15 @@ int do_fork(process *parent)
 	}
 
 	// pfiles复制
-    child->pfiles->nfiles = parent->pfiles->nfiles;
-    child->pfiles->cwd = parent->pfiles->cwd;
-    for (int i = 0; i < MAX_FILES; i++) {
-        child->pfiles->opened_files[i] = parent->pfiles->opened_files[i];
-        if (child->pfiles->opened_files[i].f_dentry != NULL)
-            child->pfiles->opened_files[i].f_dentry->d_ref++;
-        // sprint("the address is %0x\n", child->pfiles->opened_files[i].f_dentry);
-    }
+	child->pfiles->nfiles = parent->pfiles->nfiles;
+	child->pfiles->cwd = parent->pfiles->cwd;
+	for (int i = 0; i < MAX_FILES; i++)
+	{
+		child->pfiles->opened_files[i] = parent->pfiles->opened_files[i];
+		if (child->pfiles->opened_files[i].f_dentry != NULL)
+			child->pfiles->opened_files[i].f_dentry->d_ref++;
+		// sprint("the address is %0x\n", child->pfiles->opened_files[i].f_dentry);
+	}
 
 	child->status = READY;
 	child->trapframe->regs.a0 = 0;
@@ -318,19 +318,20 @@ static void exec_clean_pagetable(pagetable_t page_dir)
 						// if (*pte3 & PTE_V & PTE_W) // 此处低级错误
 						// {
 						// 	// free_cnt++;
-                        //     uint64 page = PTE2PA(*pte3);
-                        //     free_page((void *)page);
-                        //     (*pte3) &= ~PTE_V;
+						//     uint64 page = PTE2PA(*pte3);
+						//     free_page((void *)page);
+						//     (*pte3) &= ~PTE_V;
 						// }
 						if (*pte3 & PTE_V) // NOTE:通过可写来区分trap_sec_start 这一个虚拟地址
 						{
 							valid_cnt++;
-							if (*pte3 & PTE_W) {
+							if (*pte3 & PTE_W)
+							{
 								valid_and_writable_cnt++;
 								uint64 page = PTE2PA(*pte3);
-                            	free_page((void *)page);
+								free_page((void *)page);
 							}
-                            (*pte3) &= ~PTE_V;
+							(*pte3) &= ~PTE_V;
 						}
 					}
 					free_page((void *)page_low_dir);

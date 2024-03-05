@@ -7,7 +7,8 @@
 #define MAX_CMDLINE_ARGS 64
 
 // elf header structure
-typedef struct elf_header_t {
+typedef struct elf_header_t
+{
   uint32 magic;
   uint8 elf[12];
   uint16 type;      /* Object file type */
@@ -26,12 +27,13 @@ typedef struct elf_header_t {
 } elf_header;
 
 // segment types, attributes of elf_prog_header_t.flags
-#define SEGMENT_READABLE   0x4
+#define SEGMENT_READABLE 0x4
 #define SEGMENT_EXECUTABLE 0x1
-#define SEGMENT_WRITABLE   0x2
+#define SEGMENT_WRITABLE 0x2
 
 // Program segment header.
-typedef struct elf_prog_header_t {
+typedef struct elf_prog_header_t
+{
   uint32 type;   /* Segment type */
   uint32 flags;  /* Segment flags */
   uint64 off;    /* Segment file offset */
@@ -42,10 +44,11 @@ typedef struct elf_prog_header_t {
   uint64 align;  /* Segment alignment */
 } elf_prog_header;
 
-#define ELF_MAGIC 0x464C457FU  // "\x7FELF" in little endian
+#define ELF_MAGIC 0x464C457FU // "\x7FELF" in little endian
 #define ELF_PROG_LOAD 1
 
-typedef enum elf_status_t {
+typedef enum elf_status_t
+{
   EL_OK = 0,
 
   EL_EIO,
@@ -55,7 +58,8 @@ typedef enum elf_status_t {
 
 } elf_status;
 
-typedef struct elf_ctx_t {
+typedef struct elf_ctx_t
+{
   void *info;
   elf_header ehdr;
 } elf_ctx;
