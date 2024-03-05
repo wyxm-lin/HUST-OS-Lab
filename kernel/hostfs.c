@@ -309,7 +309,7 @@ int hostfs_readdir(struct vinode *dir_vinode, struct dir *dir, int *offset)
     // return 0;
 
 	// panic("hostfs_readdir not implemented!\n");
-	// return -1;
+	return -1;
 }
 
 struct vinode *hostfs_mkdir(struct vinode *parent, struct dentry *sub_dentry)

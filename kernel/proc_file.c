@@ -48,7 +48,7 @@ proc_file_management *init_proc_file_management(void)
 	uint64 hartid = read_tp();
 
 	proc_file_management *pfiles = (proc_file_management *)alloc_page();
-	pfiles->cwd = vfs_root_dentry; // by default, cwd is the root
+	pfiles->cwd = vfs_root_dentry; // by default, cwd is the root // comment:默认在根目录下
 	pfiles->nfiles = 0;
 
 	for (int fd = 0; fd < MAX_FILES; ++fd)

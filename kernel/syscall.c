@@ -16,6 +16,8 @@
 #include "proc_file.h"
 
 #include "spike_interface/spike_utils.h"
+#include "util/string.h"
+#include "vfs.h"
 
 //
 // implement the SYS_user_print syscall
@@ -39,7 +41,9 @@ ssize_t sys_user_print_dir(const char* buf, size_t n) {
 
 	sprint(USER);
 	sprint(":");
-	char* dir = current[hartid]->pfiles->cwd->name;
+	char dir[256];
+	memset(dir, 0, sizeof(dir));
+	get_cwd(dir, current[hartid]->pfiles->cwd);
 	sprint(dir);
 	char *pa = (char *)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), (void *)buf);
 	sprint(pa);
@@ -345,8 +349,9 @@ ssize_t sys_user_sem_V(uint64 sem)
 // added @ lab4_challenge1
 ssize_t sys_user_cwd(uint64 path) {
 	uint64 hartid = read_tp();
-	uint64 pa = (uint64)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), (void *)path);
-	memcpy((char*)pa, current[hartid]->pfiles->cwd->name, strlen(current[hartid]->pfiles->cwd->name));
+	char* pa = (char*)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), (void *)path);
+	pa[0] = '\0';
+	get_cwd(pa, current[hartid]->pfiles->cwd);
 	return 0;
 }
 
@@ -354,7 +359,12 @@ ssize_t sys_user_chdir(uint64 path) {
 	uint64 hartid = read_tp();
 
 	char* pa = (char*)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), (void *)path);
-
+	struct dentry* file_dentry = get_dentry(pa);
+	if (file_dentry == NULL) {
+		return -1;
+	}
+	free_vfs_dentry(current[hartid]->pfiles->cwd);
+	current[hartid]->pfiles->cwd = file_dentry;
 	return 0;
 }
 

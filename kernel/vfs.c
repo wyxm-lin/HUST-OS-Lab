@@ -456,6 +456,7 @@ struct file *vfs_opendir(const char *path)
     struct dentry *parent = vfs_root_dentry;
     char miss_name[MAX_PATH_LEN];
 
+    sprint("in vfs_open vfs_root_dentry is %s\n", parent->name);
     // lookup the dir
     struct dentry *file_dentry = lookup_final_dentry(path, &parent, miss_name);
 
@@ -818,3 +819,34 @@ struct vinode *default_alloc_vinode(struct super_block *sb)
 }
 
 struct file_system_type *fs_list[MAX_SUPPORTED_FS];
+
+void get_cwd(char* buf, struct dentry* st) {
+    char copy[MAX_PATH_LEN];
+	memset(copy, 0, MAX_PATH_LEN);
+	while (st->parent != NULL) {
+		strcpy(copy, st->name);
+		reverse(copy);
+		strcat(buf, copy);
+		strcat(buf, "/");
+		st = st->parent;
+	}
+	if (buf[0] == '\0')
+		strcat(buf, "/");
+	reverse(buf);
+}
+
+struct dentry* get_dentry(const char* path) {
+	char path_copy[MAX_PATH_LEN];
+	strcpy(path_copy, path);
+	char* token = strtok(path_copy, "/");
+	struct dentry* dentry = vfs_root_dentry;
+	
+	while (token != NULL) {
+		dentry = hash_get_dentry(dentry, token);
+		if (dentry == NULL) {
+			return NULL;
+		}
+		token = strtok(NULL, "/");
+	}
+    return dentry;
+}

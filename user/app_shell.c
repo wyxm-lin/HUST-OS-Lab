@@ -79,12 +79,14 @@ void my_sscanf(char *dst, char *src, int *index)
     {
         i++;
     }
+    char* ptr = dst;
     while (src[i] != ' ' && src[i] != '\0')
     {
-        dst[i] = src[i];
+        *ptr = src[i];
         i++;
+        ptr++;
     }
-    dst[i] = '\0';
+    *ptr = '\0';
     *index = i;
 }
 
@@ -110,8 +112,7 @@ int work(char *commandlist)
     }
     else if (strcmp(command, "cd") == 0)
     {
-        
-
+        cd(commandlist, &idx);
     }
     else if (strcmp(command, "mkdir") == 0)
     {
@@ -134,7 +135,7 @@ void ls(char *commandlist, int* index) {
     strcat(path, "/");
     strcat(path, arg);
     ParsePath(path);
-    // printu("%s\n", path);
+
     int dir_fd = opendir_u(path);
     if (dir_fd < 0)
     {
@@ -146,7 +147,6 @@ void ls(char *commandlist, int* index) {
     int width = 256;
     while (readdir_u(dir_fd, &dir) == 0)
     {
-        // we do not have %ms :(
         char name[width + 1];
         memset(name, ' ', width + 1);
         name[width] = '\0';
@@ -161,7 +161,6 @@ void ls(char *commandlist, int* index) {
     }
     printu("\n");
     closedir_u(dir_fd);
-
 }
 
 void pwd() {
@@ -181,4 +180,8 @@ void cd(char *commandlist, int* index) {
     strcat(path, arg);
     ParsePath(path);
 
+    int result = change_cwd(path);
+    if (result == -1) {
+        printu("cd: %s: No such file or directory\n", arg);
+    }
 }
