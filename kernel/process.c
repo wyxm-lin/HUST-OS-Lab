@@ -17,6 +17,8 @@
 #include "memlayout.h"
 #include "sched.h"
 #include "spike_interface/spike_utils.h"
+#include "spike_interface/atomic.h"
+#include "core.h"
 
 // Two functions defined in kernel/usertrap.S
 extern char smode_trap_vector[];
@@ -30,7 +32,7 @@ extern char trap_sec_start[];
 process procs[NPROC];
 
 // current points to the currently running user-mode application.
-process *current[NCPU] = { NULL };
+process *current[NCPU] = {NULL};
 
 //
 // switch to a user-mode process
@@ -91,6 +93,7 @@ void init_proc_pool()
 // allocate an empty process, init its vm space. returns the pointer to
 // process strcuture. added @lab3_1
 //
+
 process *alloc_process()
 {
 	uint64 hartid = read_tp();
@@ -168,9 +171,8 @@ process *alloc_process()
 
 	procs[i].parent = NULL;
 	procs[i].waitpid = 0;
-	procs[i].hartid = -1;
 	memset(procs[i].path, 0, sizeof(procs[i].path));
-	
+
 	// return after initialization.
 	return &procs[i];
 }
@@ -210,8 +212,6 @@ int do_fork(process *parent)
 		{
 		case CONTEXT_SEGMENT:
 			*child->trapframe = *parent->trapframe;
-			{
-			}
 			// do_fork map code segment at pa:0000000087f13000 of parent to child at va:0000000000010000.
 			break;
 		case STACK_SEGMENT:
@@ -275,6 +275,18 @@ int do_fork(process *parent)
 			child->mapped_info[child->total_mapped_region].seg_type = CODE_SEGMENT;
 			child->total_mapped_region++;
 			sprint("hartid = %lld: do_fork map code segment at pa:%lx of parent to child at va:%lx.\n", hartid, lookup_pa(parent->pagetable, parent->mapped_info[i].va), parent->mapped_info[i].va); // 增添此行(根据doc打印)
+			break;
+		case DATA_SEGMENT:
+			child->mapped_info[child->total_mapped_region].seg_type = DATA_SEGMENT;
+			child->mapped_info[child->total_mapped_region].va = parent->mapped_info[i].va;
+			child->mapped_info[child->total_mapped_region].npages = parent->mapped_info[i].npages;
+			for (int i = 0; i < child->mapped_info[child->total_mapped_region].npages; i++)
+			{
+				uint64 child_pa = (uint64)alloc_page();
+				memcpy((void *)child_pa, (void *)lookup_pa(parent->pagetable, child->mapped_info[child->total_mapped_region].va + i * PGSIZE), PGSIZE);
+				map_pages(child->pagetable, child->mapped_info[child->total_mapped_region].va + i * PGSIZE, 1, child_pa, prot_to_type(PROT_WRITE | PROT_READ, 1));
+			}
+			child->total_mapped_region++; // ANNOTATE: 需要加1
 			break;
 		}
 	}

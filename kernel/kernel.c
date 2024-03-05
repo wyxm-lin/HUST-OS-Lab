@@ -18,6 +18,7 @@
 #include "spike_interface/atomic.h"
 #include "config.h"
 #include "sync_utils.h"
+#include "core.h"
 
 //
 // trap_sec_start points to the beginning of S-mode trap segment (i.e., the entry point of
@@ -87,8 +88,6 @@ process *load_user_program()
 	process *proc;
 
 	proc = alloc_process();
-
-	proc->hartid = hartid;
 
     sprint("hartid = %lld: User application is loading.\n", hartid);
 

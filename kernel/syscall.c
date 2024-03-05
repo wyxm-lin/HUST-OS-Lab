@@ -42,14 +42,17 @@ ssize_t sys_user_exit(uint64 code)
 
 	sprint("hartid = %lld: User(pid = %d) exit with code:%d.\n", hartid, current[hartid]->pid, code);
 	// reclaim the current process, and reschedule. added @lab3_1
-	
-	// {
-	// 	if (current->parent != NULL && current->parent->waitpid == current->pid)
-	// 	{
-	// 		current->parent->status = READY;
-	// 		insert_to_ready_queue(current->parent);
-	// 	}
-	// }
+
+	if (current[hartid]->parent != NULL && current[hartid]->parent->status == BLOCKED)
+	{
+		if (current[hartid]->parent->waitpid == -1) {
+			insert_to_ready_queue(current[hartid]->parent);
+		}
+		else if (current[hartid]->parent->waitpid == current[hartid]->pid)
+		{
+			insert_to_ready_queue(current[hartid]->parent);
+		}
+	}
 
 	free_process(current[hartid]);
 	schedule();
@@ -134,10 +137,12 @@ ssize_t sys_user_open(char *pathva, int flags)
 	uint64 hartid = read_tp();
 
 	char *pathpa = (char *)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), pathva);
-	if (pathpa[0] == '/') {
+	if (pathpa[0] == '/')
+	{
 		return do_open(pathpa, flags);
 	}
-	else {
+	else
+	{
 		char cwd[256];
 		memset(cwd, 0, sizeof(cwd));
 		get_pwd(cwd, current[hartid]->pfiles->cwd);
@@ -241,7 +246,8 @@ ssize_t sys_user_opendir(char *pathva)
 	{
 		return do_opendir(pathpa);
 	}
-	else {
+	else
+	{
 		char cwd[256];
 		memset(cwd, 0, sizeof(cwd));
 		get_pwd(cwd, current[hartid]->pfiles->cwd);
@@ -274,7 +280,8 @@ ssize_t sys_user_mkdir(char *pathva)
 	{
 		return do_mkdir(pathpa);
 	}
-	else {
+	else
+	{
 		char cwd[256];
 		memset(cwd, 0, sizeof(cwd));
 		get_pwd(cwd, current[hartid]->pfiles->cwd);
@@ -330,20 +337,29 @@ int sys_user_wait(int pid)
 {
 	uint64 hartid = read_tp();
 
-	if (pid == 0)
+	if (pid == -1)
 	{
-		panic("wait for pid 0 is not allowed.\n");
-		return -1; // never reach here
+		current[hartid]->status = BLOCKED;
+		current[hartid]->waitpid = -1;
+		schedule();
+		return current[hartid]->waitpid;
 	}
-	if (procs[pid].parent != current[hartid])
+	else if (pid > 0)
 	{
-		panic("wait for a process that is not a child.\n");
+		if (procs[pid].parent != current[hartid])
+		{
+			// panic("wait for a process that is not a child.\n");
+			return -1;
+		}
+		current[hartid]->status = BLOCKED;
+		current[hartid]->waitpid = pid;
+		schedule();
+		return current[hartid]->waitpid;
+	}
+	else
+	{
 		return -1;
 	}
-	current[hartid]->status = BLOCKED;
-	current[hartid]->waitpid = pid;
-	schedule();
-	return pid;
 }
 
 ssize_t sys_user_pwd(char *buf)

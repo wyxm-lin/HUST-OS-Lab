@@ -110,8 +110,6 @@ typedef struct process_t
 
     int waitpid;
 
-    uint64 hartid;
-
     char path[256];
     char* debugline;
     char** dir;

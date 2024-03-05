@@ -8,6 +8,7 @@
 #include "spike_interface/spike_utils.h"
 #include "spike_interface/atomic.h"
 #include "kernel/sync_utils.h"
+#include "kernel/core.h"
 
 //
 // global variables are placed in the .data section.
@@ -110,6 +111,7 @@ void m_start(uintptr_t hartid, uintptr_t dtb)
     if (BSPExist == No)
     {
         BSPExist = Yes;
+        core_info_init();
         spike_file_init();
         init_dtb(dtb);
     }
