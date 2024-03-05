@@ -33,9 +33,12 @@ int closedir_u(int fd);
 int link_u(const char *fn1, const char *fn2);
 int unlink_u(const char *fn);
 
-// added@ lab4_challenge3
+// added @ lab4_challenge3
 int exec(const char *path, char* arg);
 int wait(int pid);
 int execPlus(const char* path, char* argv[]);
+
+// added @ challengeX
+int pwd_u(char* buf);
 
 #endif

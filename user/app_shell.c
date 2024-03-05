@@ -6,6 +6,15 @@ int main(int argc, char *argv[])
 {
 	printu("\n======== Shell Start ========\n\n");
 	printu("hello world\n");
+	
+	{
+		printu("================================\n");
+		char path[256];
+		memset(path, 0, 256);
+		pwd_u(path);
+		printu("pwd: %s\n", path);
+	}
+	
 	exit(0);
 	return 0;
 }

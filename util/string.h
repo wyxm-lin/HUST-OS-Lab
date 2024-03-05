@@ -14,5 +14,6 @@ char *strcat(char *dst, const char *src);
 long atol(const char* str);
 void *memmove(void* dst, const void* src, size_t n);
 char *safestrcpy(char* s, const char* t, int n);
+void reverse(char *str);
 
 #endif

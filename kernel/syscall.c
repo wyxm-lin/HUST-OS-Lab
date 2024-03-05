@@ -16,6 +16,7 @@
 #include "proc_file.h"
 
 #include "spike_interface/spike_utils.h"
+#include "vfs.h"
 
 //
 // implement the SYS_user_print syscall
@@ -274,6 +275,12 @@ int sys_user_wait(int pid)
 	return pid;
 }
 
+ssize_t sys_user_pwd(char* buf) {
+	char* pa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), buf);
+	get_pwd(pa, current->pfiles->cwd);
+	return 0;
+}
+
 //
 // [a0]: the syscall number; [a1] ... [a7]: arguments to the syscalls.
 // returns the code of success, (e.g., 0 means success, fail for otherwise)
@@ -329,6 +336,8 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
 	}
 	case SYS_user_wait:
 		return sys_user_wait(a1);
+	case SYS_user_pwd:
+		return sys_user_pwd((char*) a1);
 	default:
 		panic("Unknown syscall %ld \n", a0);
 	}

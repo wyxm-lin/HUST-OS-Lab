@@ -204,3 +204,8 @@ int execPlus(const char *path, char *argv[])
 	// TODO
 	return 0;
 }
+
+int pwd_u(char *buf)
+{
+	return do_user_call(SYS_user_pwd, (uint64)buf, 0, 0, 0, 0, 0, 0);
+}

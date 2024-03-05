@@ -818,3 +818,20 @@ struct vinode *default_alloc_vinode(struct super_block *sb)
 }
 
 struct file_system_type *fs_list[MAX_SUPPORTED_FS];
+
+void get_pwd(char* buf, struct dentry *dentry)
+{
+	buf[0] = '\0';
+	char copy[MAX_PATH_LEN];
+	memset(copy, 0, MAX_PATH_LEN);
+	while (dentry != vfs_root_dentry) {
+		strcpy(copy, dentry->name);
+		reverse(copy);
+		strcat(buf, copy);
+		strcat(buf, "/");
+		dentry = dentry->parent;
+	}
+	if (buf[0] == '\0')
+		strcat(buf, "/");
+	reverse(buf);
+}
