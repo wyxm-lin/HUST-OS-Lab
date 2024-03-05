@@ -162,7 +162,7 @@ struct file *vfs_open(const char *path, int flags)
 		}
 		else
 		{
-			sprint("vfs_open: cannot find the file!\n");
+			// sprint("vfs_open: cannot find the file!\n");
 			return NULL;
 		}
 	}

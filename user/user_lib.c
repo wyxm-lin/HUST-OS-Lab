@@ -252,6 +252,8 @@ void PWD();
 void CD(char *command, int *idx);
 void MKDIR(char *command, int *idx);
 void LS(char *command, int *idx);
+void CAT(char *command, int *idx);
+void TOUCH(char *command, int *idx);
 
 int work(char *commandlist)
 {
@@ -280,6 +282,14 @@ int work(char *commandlist)
 	}
 	else if (strcmp(command, "ls") == 0) {
 		LS(commandlist, &idx);
+	}
+	else if (strcmp(command, "cat") == 0)
+	{
+		CAT(commandlist, &idx);
+	}
+	else if (strcmp(command, "touch") == 0)
+	{
+		TOUCH(commandlist, &idx);
 	}
 	else
 	{
@@ -330,4 +340,38 @@ void LS(char *command, int *idx) {
 		printu("%s\n", dir.name);
 	}
 	closedir_u(fd);
+}
+
+void CAT(char *command, int *idx)
+{
+	char arg[256];
+	sscanf(arg, command, idx);
+	int fd = open(arg, O_RDWR);
+	if (fd == -1)
+	{
+		printu("cat: %s: No such file or directory\n", arg);
+		return;
+	}
+	char buf[512];
+	memset(buf, 0, sizeof(buf));
+	read_u(fd, buf, sizeof(buf));
+	printu("%s\n", buf);
+	close(fd);
+}
+
+void TOUCH(char *command, int *idx) 
+{
+	char arg[256];
+	sscanf(arg, command, idx);
+	int fd = open(arg, O_CREAT | O_RDWR);
+	if (fd == -1)
+	{
+		printu("touch: %s: No such file or directory\n", arg);
+		return;
+	}
+	{
+		char buf[] = "hello world\n";
+		write_u(fd, buf, sizeof(buf));
+	}
+	close(fd);
 }

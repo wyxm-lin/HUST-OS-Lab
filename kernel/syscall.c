@@ -116,7 +116,17 @@ ssize_t sys_user_yield()
 ssize_t sys_user_open(char *pathva, int flags)
 {
 	char *pathpa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), pathva);
-	return do_open(pathpa, flags);
+	if (pathpa[0] == '/') {
+		return do_open(pathpa, flags);
+	}
+	else {
+		char cwd[256];
+		memset(cwd, 0, sizeof(cwd));
+		get_pwd(cwd, current->pfiles->cwd);
+		strcat(cwd, "/");
+		strcat(cwd, pathpa);
+		return do_open(cwd, flags);
+	}
 }
 
 //
