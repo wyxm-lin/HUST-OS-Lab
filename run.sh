@@ -1,1 +1,1 @@
-make run > print.txt
+make run

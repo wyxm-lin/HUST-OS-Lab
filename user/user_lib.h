@@ -43,6 +43,6 @@ int pwd_u(char* buf);
 int cd_u(char* path);
 int scanf_u(const char* s, ...);
 int shell();
-void work(char* commandlist);
+int work(char* commandlist);
 
 #endif

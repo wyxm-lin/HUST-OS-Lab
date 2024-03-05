@@ -250,8 +250,10 @@ static void sscanf(char *dst, char *src, int *idx)
 
 void PWD();
 void CD(char *command, int *idx);
+void MKDIR(char *command, int *idx);
+void LS(char *command, int *idx);
 
-void work(char *commandlist)
+int work(char *commandlist)
 {
 	char command[256];
 	int idx = 0;
@@ -259,7 +261,11 @@ void work(char *commandlist)
 
 	if (strcmp(command, "") == 0 || strcmp(command, "\n") == 0)
 	{
-		return;
+		// do nothing
+	}
+	else if (strcmp(command, "exit") == 0)
+	{
+		return -1;
 	}
 	else if (strcmp(command, "pwd") == 0)
 	{
@@ -269,10 +275,17 @@ void work(char *commandlist)
 	{
 		CD(commandlist, &idx);
 	}
+	else if (strcmp(command, "mkdir") == 0) {
+		MKDIR(commandlist, &idx);
+	}
+	else if (strcmp(command, "ls") == 0) {
+		LS(commandlist, &idx);
+	}
 	else
 	{
 		printu("command not found: %s\n", command);
 	}
+	return 0;
 }
 
 void PWD()
@@ -292,4 +305,29 @@ void CD(char *commandlist, int *idx)
 	{
 		printu("cd: %s: No such file or directory\n", arg);
 	}
+}
+
+void MKDIR(char *command, int *idx) {
+	char arg[256];
+	sscanf(arg, command, idx);
+	int rc = mkdir_u(arg);
+	if (rc == -1)
+	{
+		printu("mkdir: %s: File exists\n", arg);
+	}
+}
+
+void LS(char *command, int *idx) {
+	char arg[256];
+	sscanf(arg, command, idx);
+	int fd = opendir_u(arg);
+	if (fd == -1) {
+		printu("ls: cannot access '%s': No such file or directory\n", arg);
+		return;
+	}
+	struct dir dir;
+	while (readdir_u(fd, &dir) != -1) {
+		printu("%s\n", dir.name);
+	}
+	closedir_u(fd);
 }

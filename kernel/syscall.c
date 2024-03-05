@@ -39,7 +39,8 @@ ssize_t sys_user_exit(uint64 code)
 	sprint("User exit with code:%d.\n", code);
 	// reclaim the current process, and reschedule. added @lab3_1
 	free_process(current);
-	if (current->parent != NULL && current->parent->waitpid == current->pid) {
+	if (current->parent != NULL && current->parent->waitpid == current->pid)
+	{
 		current->parent->status = READY;
 		insert_to_ready_queue(current->parent);
 	}
@@ -198,7 +199,18 @@ ssize_t sys_user_close(int fd)
 ssize_t sys_user_opendir(char *pathva)
 {
 	char *pathpa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), pathva);
-	return do_opendir(pathpa);
+	if (pathpa[0] == '/')
+	{
+		return do_opendir(pathpa);
+	}
+	else {
+		char cwd[256];
+		memset(cwd, 0, sizeof(cwd));
+		get_pwd(cwd, current->pfiles->cwd);
+		strcat(cwd, "/");
+		strcat(cwd, pathpa);
+		return do_opendir(cwd);
+	}
 }
 
 //
@@ -216,7 +228,18 @@ ssize_t sys_user_readdir(int fd, struct dir *vdir)
 ssize_t sys_user_mkdir(char *pathva)
 {
 	char *pathpa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), pathva);
-	return do_mkdir(pathpa);
+	if (pathpa[0] == '/')
+	{
+		return do_mkdir(pathpa);
+	}
+	else {
+		char cwd[256];
+		memset(cwd, 0, sizeof(cwd));
+		get_pwd(cwd, current->pfiles->cwd);
+		strcat(cwd, "/");
+		strcat(cwd, pathpa);
+		return do_mkdir(cwd);
+	}
 }
 
 //
@@ -249,7 +272,7 @@ ssize_t sys_user_unlink(char *vfn)
 int sys_user_exec(char *pathva, char *arg)
 {
 	char *pathpa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), pathva);
-	char* argpa = (char* )user_va_to_pa((pagetable_t)(current->pagetable), arg);
+	char *argpa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), arg);
 	// sprint("in function sys_user_exec, pathpa is %s, argva is %s\n", pathpa, argpa);
 	int ret = do_exec(pathpa, argpa);
 	// sprint("sys_user_exec function will return\n");
@@ -275,35 +298,46 @@ int sys_user_wait(int pid)
 	return pid;
 }
 
-ssize_t sys_user_pwd(char* buf) {
-	char* pa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), buf);
+ssize_t sys_user_pwd(char *buf)
+{
+	char *pa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), buf);
 	get_pwd(pa, current->pfiles->cwd);
 	return 0;
 }
 
-int sys_user_cd(char* path) {
-	char* pa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), path);
+int sys_user_cd(char *path)
+{
+	char *pa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), path);
 	char cwd[256];
-	memset(cwd, 0, sizeof(cwd));
-	get_pwd(cwd, current->pfiles->cwd);
-	strcat(cwd, "/");
-	strcat(cwd, pa);
-	struct dentry* dentry = get_dentry(cwd);
-	if (dentry == NULL) {
+	if (pa[0] == '/')
+	{
+		strcpy(cwd, pa);
+	}
+	else
+	{
+		memset(cwd, 0, sizeof(cwd));
+		get_pwd(cwd, current->pfiles->cwd);
+		strcat(cwd, "/");
+		strcat(cwd, pa);
+	}
+	struct dentry *dentry = get_dentry(cwd);
+	if (dentry == NULL)
+	{
 		return -1;
 	}
-	free_vfs_dentry(current->pfiles->cwd);
 	current->pfiles->cwd = dentry;
 	return 0;
 }
 
-ssize_t sys_user_scanf(char* in) {
-	char* pa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), (void*)in);
+ssize_t sys_user_scanf(char *in)
+{
+	char *pa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), (void *)in);
 	spike_file_read(stderr, pa, 256);
 	return 0;
 }
 
-ssize_t sys_user_shell() {
+ssize_t sys_user_shell()
+{
 	char buf[256];
 	get_pwd(buf, current->pfiles->cwd);
 	sprint("%s:%s$ ", AUTHOR, buf);
@@ -360,15 +394,16 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
 		return sys_user_link((char *)a1, (char *)a2);
 	case SYS_user_unlink:
 		return sys_user_unlink((char *)a1);
-	case SYS_user_exec: {
+	case SYS_user_exec:
+	{
 		return sys_user_exec((char *)a1, (char *)a2);
 	}
 	case SYS_user_wait:
 		return sys_user_wait(a1);
 	case SYS_user_pwd:
-		return sys_user_pwd((char*) a1);
+		return sys_user_pwd((char *)a1);
 	case SYS_user_cd:
-		return sys_user_cd((char*) a1);
+		return sys_user_cd((char *)a1);
 	case SYS_user_scanf:
 		return sys_user_scanf((char *)a1);
 	case SYS_user_shell:

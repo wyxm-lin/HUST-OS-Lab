@@ -9,9 +9,8 @@ int main(int argc, char* argv[])
 	while (TRUE) {
 		char commandlist[256];
 		scanf_u("%s", commandlist);
-		if (strcmp(commandlist, "exit") == 0)
+		if (work(commandlist))
 			break;
-		work(commandlist);
 		shell();
 	}
 	printu("\n================================== Shell End ==================================\n\n");
