@@ -37,6 +37,7 @@
 
 // added @ challengeX
 #define SYS_user_pwd (SYS_user_base + 32)
+#define SYS_user_cd (SYS_user_base + 33)
 
 long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, long a7);
 

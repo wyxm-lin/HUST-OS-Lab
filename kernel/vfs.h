@@ -217,5 +217,6 @@ struct dentry *lookup_final_dentry(const char *path, struct dentry **parent,
 void get_base_name(const char *path, char *base_name);
 
 void get_pwd(char* buf, struct dentry* dir);
+struct dentry *get_dentry(char *path);
 
 #endif

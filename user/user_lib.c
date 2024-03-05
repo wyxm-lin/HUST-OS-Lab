@@ -209,3 +209,13 @@ int pwd_u(char *buf)
 {
 	return do_user_call(SYS_user_pwd, (uint64)buf, 0, 0, 0, 0, 0, 0);
 }
+
+int cd_u(char *path)
+{
+	int rc = do_user_call(SYS_user_cd, (uint64)path, 0, 0, 0, 0, 0, 0);
+	if (rc == -1)
+	{
+		printu("cd: %s: No such file or directory\n", path);
+	}
+	return 0;
+}

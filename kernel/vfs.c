@@ -590,39 +590,51 @@ struct dentry *lookup_final_dentry(const char *path, struct dentry **parent,
 	while (token != NULL)
 	{
 		*parent = this;
-		this = hash_get_dentry((*parent), token); // try hash first
-		if (this == NULL)
+		if (strcmp(token, ".") == 0 || strcmp(token, "/") == 0)
 		{
-			// if not found in hash, try to find it in the directory
-			this = alloc_vfs_dentry(token, NULL, *parent);
-			// lookup subfolder/file in its parent directory. note:
-			// hostfs and rfs will take different procedures for lookup.
-			struct vinode *found_vinode = viop_lookup((*parent)->dentry_inode, this);
-			if (found_vinode == NULL)
+			// do nothing
+		}
+		else if (strcmp(token, "..") == 0)
+		{
+			if (this != vfs_root_dentry)
+				this = this->parent;
+		}
+		else
+		{
+			this = hash_get_dentry((*parent), token); // try hash first
+			if (this == NULL)
 			{
-				// not found in both hash table and directory file on disk.
-				free_page(this);
-				strcpy(miss_name, token);
-				return NULL;
-			}
+				// if not found in hash, try to find it in the directory
+				this = alloc_vfs_dentry(token, NULL, *parent);
+				// lookup subfolder/file in its parent directory. note:
+				// hostfs and rfs will take different procedures for lookup.
+				struct vinode *found_vinode = viop_lookup((*parent)->dentry_inode, this);
+				if (found_vinode == NULL)
+				{
+					// not found in both hash table and directory file on disk.
+					free_page(this);
+					strcpy(miss_name, token);
+					return NULL;
+				}
 
-			struct vinode *same_inode = hash_get_vinode(found_vinode->sb, found_vinode->inum);
-			if (same_inode != NULL)
-			{
-				// the vinode is already in the hash table (i.e. we are opening another hard link)
-				this->dentry_inode = same_inode;
-				same_inode->ref++;
-				free_page(found_vinode);
-			}
-			else
-			{
-				// the vinode is not in the hash table
-				this->dentry_inode = found_vinode;
-				found_vinode->ref++;
-				hash_put_vinode(found_vinode);
-			}
+				struct vinode *same_inode = hash_get_vinode(found_vinode->sb, found_vinode->inum);
+				if (same_inode != NULL)
+				{
+					// the vinode is already in the hash table (i.e. we are opening another hard link)
+					this->dentry_inode = same_inode;
+					same_inode->ref++;
+					free_page(found_vinode);
+				}
+				else
+				{
+					// the vinode is not in the hash table
+					this->dentry_inode = found_vinode;
+					found_vinode->ref++;
+					hash_put_vinode(found_vinode);
+				}
 
-			hash_put_dentry(this);
+				hash_put_dentry(this);
+			}
 		}
 
 		// get next token
@@ -819,12 +831,13 @@ struct vinode *default_alloc_vinode(struct super_block *sb)
 
 struct file_system_type *fs_list[MAX_SUPPORTED_FS];
 
-void get_pwd(char* buf, struct dentry *dentry)
+void get_pwd(char *buf, struct dentry *dentry)
 {
 	buf[0] = '\0';
 	char copy[MAX_PATH_LEN];
 	memset(copy, 0, MAX_PATH_LEN);
-	while (dentry != vfs_root_dentry) {
+	while (dentry != vfs_root_dentry)
+	{
 		strcpy(copy, dentry->name);
 		reverse(copy);
 		strcat(buf, copy);
@@ -834,4 +847,35 @@ void get_pwd(char* buf, struct dentry *dentry)
 	if (buf[0] == '\0')
 		strcat(buf, "/");
 	reverse(buf);
+}
+
+struct dentry *get_dentry(char *path)
+{
+	char path_copy[MAX_PATH_LEN];
+	strcpy(path_copy, path);
+	char *token = strtok(path_copy, "/");
+	struct dentry *dentry = vfs_root_dentry;
+
+	while (token != NULL)
+	{
+		if (strcmp(token, ".") == 0 || strcmp(token, "/") == 0)
+		{
+			// do nothing
+		}
+		else if (strcmp(token, "..") == 0)
+		{
+			if (dentry != vfs_root_dentry)
+				dentry = dentry->parent;
+		}
+		else
+		{
+			dentry = hash_get_dentry(dentry, token);
+			if (dentry == NULL)
+			{
+				return NULL;
+			}
+		}
+		token = strtok(NULL, "/");
+	}
+	return dentry;
 }
