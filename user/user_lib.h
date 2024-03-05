@@ -51,4 +51,16 @@ int change_cwd(const char* path);
 int scanfu(const char *s, ...);
 int printu_dir(const char *s, ...);
 
+void ParsePath(char *path);
+void my_sscanf(char *dst, char *src, int *index);
+int work(char *commandlist);
+
+void LS(char *commandList, int* index);
+void PWD();
+void CD(char *commandList, int* index);
+void MKDIR(char *commandList, int* index);
+void TOUCH(char *commandList, int* index);
+
+
+
 #endif
