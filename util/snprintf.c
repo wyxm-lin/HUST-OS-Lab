@@ -117,8 +117,9 @@ int32 vsnscanf(const char *s, const char *format, va_list vl)
             {
             case 's':
                 sval = va_arg(vl, char *);
-                while (*s != ' ' && *s != '\n' && *s != '\0')
-                {
+                // while (*s != ' ' && *s != '\n' && *s != '\0') // 此处可以为' '分隔符
+                while (*s != '\n' && *s != '\0')
+				{
                     *sval++ = *s++;
                 }
                 *sval = '\0';
