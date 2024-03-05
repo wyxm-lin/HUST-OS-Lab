@@ -101,3 +101,40 @@ int32 vsnprintf(char *out, size_t n, const char *s, va_list vl)
 		out[n - 1] = 0;
 	return pos;
 }
+
+int32 vsnscanf(const char *in, const char *format, va_list vl)
+{
+	const char *p = format;
+	char *sval;
+	bool isFormat = FALSE;
+	int32 argCount = 0;
+
+	for (; *p; p++)
+	{
+		if (isFormat)
+		{
+			switch (*p)
+			{
+			case 's':
+				sval = va_arg(vl, char *);
+				// while (*s != ' ' && *s != '\n' && *s != '\0') // 此处可以为' '分隔符
+				while (*in != '\n' && *in != '\0')
+				{
+					*sval++ = *in++;
+				}
+				*sval = '\0';
+				argCount++;
+				break;
+			default:
+				break;
+			}
+		}
+		else if (*p == '%')
+			isFormat = TRUE;
+		else
+		{
+			// FIXME
+		}
+	}
+	return argCount;
+}

@@ -9,6 +9,7 @@
 #include "util/types.h"
 #include "util/snprintf.h"
 #include "kernel/syscall.h"
+#include "util/string.h"
 
 uint64 do_user_call(uint64 sysnum, uint64 a1, uint64 a2, uint64 a3, uint64 a4, uint64 a5, uint64 a6,
 					uint64 a7)
@@ -218,4 +219,26 @@ int cd_u(char *path)
 		printu("cd: %s: No such file or directory\n", path);
 	}
 	return 0;
+}
+
+int scanf_u(const char* s, ...)
+{
+	va_list vl;
+	va_start(vl, s);
+	char in[256]; // fixed buffer size.
+	memset(in, 0, sizeof(in));
+	do_user_call(SYS_user_scanf, (uint64)in, 0, 0, 0, 0, 0, 0);
+	vsnscanf(in, s, vl);
+	va_end(vl);
+	return 0;
+}
+
+int shell()
+{
+	return do_user_call(SYS_user_shell, 0, 0, 0, 0, 0, 0, 0);
+}
+
+void work(char* commandlist) 
+{
+	
 }

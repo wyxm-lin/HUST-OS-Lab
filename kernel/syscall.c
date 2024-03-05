@@ -297,6 +297,19 @@ int sys_user_cd(char* path) {
 	return 0;
 }
 
+ssize_t sys_user_scanf(char* in) {
+	char* pa = (char *)user_va_to_pa((pagetable_t)(current->pagetable), (void*)in);
+	spike_file_read(stderr, pa, 256);
+	return 0;
+}
+
+ssize_t sys_user_shell() {
+	char buf[256];
+	get_pwd(buf, current->pfiles->cwd);
+	sprint("%s:%s$ ", AUTHOR, buf);
+	return 0;
+}
+
 //
 // [a0]: the syscall number; [a1] ... [a7]: arguments to the syscalls.
 // returns the code of success, (e.g., 0 means success, fail for otherwise)
@@ -356,6 +369,10 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
 		return sys_user_pwd((char*) a1);
 	case SYS_user_cd:
 		return sys_user_cd((char*) a1);
+	case SYS_user_scanf:
+		return sys_user_scanf((char *)a1);
+	case SYS_user_shell:
+		return sys_user_shell();
 	default:
 		panic("Unknown syscall %ld \n", a0);
 	}

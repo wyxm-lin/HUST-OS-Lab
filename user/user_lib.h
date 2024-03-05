@@ -41,5 +41,8 @@ int execPlus(const char* path, char* argv[]);
 // added @ challengeX
 int pwd_u(char* buf);
 int cd_u(char* path);
+int scanf_u(const char* s, ...);
+int shell();
+void work(char* commandlist);
 
 #endif
