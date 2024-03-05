@@ -5,6 +5,7 @@
 #include "util/string.h"
 #include "memlayout.h"
 #include "spike_interface/spike_utils.h"
+#include "spike_interface/atomic.h"
 
 // _end is defined in kernel/kernel.lds, it marks the ending (virtual) address of PKE kernel
 extern char _end[];
@@ -37,13 +38,13 @@ static void create_freepage_list(uint64 start, uint64 end)
 //
 // place a physical page at *pa to the free list of g_free_mem_list (to reclaim the page)
 //
+spinlock_t FreePageLock;
 void free_page(void *pa)
 {
+	spinlock_lock(&FreePageLock);
 	if (((uint64)pa % PGSIZE) != 0 || (uint64)pa < free_mem_start_addr || (uint64)pa >= free_mem_end_addr)
 	{
-		// sprint("panic free_page 0x%lx \n", pa);
-		// if ((uint64)pa < free_mem_start_addr || (uint64)pa >= free_mem_end_addr) // NOTE:保证pa在合法的物理内存范围内
-		// 	return;
+		spinlock_unlock(&FreePageLock);
 		panic("free_page 0x%lx \n", pa);
 	}
 
@@ -51,18 +52,21 @@ void free_page(void *pa)
 	list_node *n = (list_node *)pa;
 	n->next = g_free_mem_list.next;
 	g_free_mem_list.next = n;
+	spinlock_unlock(&FreePageLock);
 }
 
 //
 // takes the first free page from g_free_mem_list, and returns (allocates) it.
 // Allocates only ONE page!
 //
+spinlock_t AllocPageLock;
 void *alloc_page(void)
 {
+	spinlock_lock(&AllocPageLock);
 	list_node *n = g_free_mem_list.next;
 	if (n)
 		g_free_mem_list.next = n->next;
-
+	spinlock_unlock(&AllocPageLock);
 	return (void *)n;
 }
 

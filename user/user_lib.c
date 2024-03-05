@@ -278,10 +278,12 @@ int work(char *commandlist)
 	{
 		CD(commandlist, &idx);
 	}
-	else if (strcmp(command, "mkdir") == 0) {
+	else if (strcmp(command, "mkdir") == 0)
+	{
 		MKDIR(commandlist, &idx);
 	}
-	else if (strcmp(command, "ls") == 0) {
+	else if (strcmp(command, "ls") == 0)
+	{
 		LS(commandlist, &idx);
 	}
 	else if (strcmp(command, "cat") == 0)
@@ -322,7 +324,8 @@ void CD(char *commandlist, int *idx)
 	}
 }
 
-void MKDIR(char *command, int *idx) {
+void MKDIR(char *command, int *idx)
+{
 	char arg[256];
 	sscanf(arg, command, idx);
 	int rc = mkdir_u(arg);
@@ -332,16 +335,19 @@ void MKDIR(char *command, int *idx) {
 	}
 }
 
-void LS(char *command, int *idx) {
+void LS(char *command, int *idx)
+{
 	char arg[256];
 	sscanf(arg, command, idx);
 	int fd = opendir_u(arg);
-	if (fd == -1) {
+	if (fd == -1)
+	{
 		printu("ls: cannot access '%s': No such file or directory\n", arg);
 		return;
 	}
 	struct dir dir;
-	while (readdir_u(fd, &dir) != -1) {
+	while (readdir_u(fd, &dir) != -1)
+	{
 		printu("%s\n", dir.name);
 	}
 	closedir_u(fd);
@@ -364,7 +370,7 @@ void CAT(char *command, int *idx)
 	close(fd);
 }
 
-void TOUCH(char *command, int *idx) 
+void TOUCH(char *command, int *idx)
 {
 	char arg[256];
 	sscanf(arg, command, idx);
@@ -381,12 +387,14 @@ void TOUCH(char *command, int *idx)
 	close(fd);
 }
 
-void ECHO(char *command, int *idx) 
+void ECHO(char *command, int *idx)
 {
 	char arg[256];
-	while (TRUE) {
+	while (TRUE)
+	{
 		sscanf(arg, command, idx);
-		if (strcmp(arg, "") == 0) {
+		if (strcmp(arg, "") == 0)
+		{
 			break;
 		}
 		printu("%s ", arg);

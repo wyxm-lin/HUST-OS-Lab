@@ -101,6 +101,8 @@ typedef struct process_t
     proc_file_management *pfiles;
 
     int waitpid;
+
+    uint64 hartid;
 } process;
 
 // switch to run user app
@@ -116,7 +118,7 @@ int free_process(process *proc);
 int do_fork(process *parent);
 
 // current running process
-extern process *current;
+extern process *current[NCPU];
 
 void exec_clean(process *p);
 

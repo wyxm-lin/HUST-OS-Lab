@@ -15,6 +15,9 @@
 #include "vfs.h"
 #include "rfs.h"
 #include "ramdev.h"
+#include "spike_interface/atomic.h"
+#include "config.h"
+#include "sync_utils.h"
 
 //
 // trap_sec_start points to the beginning of S-mode trap segment (i.e., the entry point of
@@ -66,56 +69,90 @@ static size_t parse_args(arg_buf *arg_bug_msg)
 // load the elf, and construct a "process" (with only a trapframe).
 // load_bincode_from_host_elf is defined in elf.c
 //
+MyStatus HasParsed = No;
+arg_buf arg_bug_msg;
+size_t argc = 0;
+
 process *load_user_program()
 {
+	uint64 hartid = read_tp();
+
+	if (argc != 0) {
+        argc --;
+        if (argc == 0) {
+            return NULL;
+        }       
+    }
+
 	process *proc;
 
 	proc = alloc_process();
-	sprint("User application is loading.\n");
 
-	arg_buf arg_bug_msg;
+	proc->hartid = hartid;
+
+    sprint("hartid = %lld: User application is loading.\n", hartid);
 
 	// retrieve command line arguements
-	size_t argc = parse_args(&arg_bug_msg);
-	if (!argc)
-		panic("You need to specify the application program!\n");
+	if (HasParsed == No) {
+        HasParsed = Yes;
+        argc = parse_args(&arg_bug_msg);
+        if (!argc)
+            panic("You need to specify the application program!\n");
+    }
 
-	load_bincode_from_host_elf(proc, arg_bug_msg.argv[0]);
+	load_bincode_from_host_elf(proc, arg_bug_msg.argv[hartid]);
 	return proc;
 }
 
 //
 // s_start: S-mode entry point of riscv-pke OS kernel.
 //
+int CoreBootCount = 0;
+extern spinlock_t CoreBootLock;
+MyStatus SModeInit = No;
+
 int s_start(void)
 {
-	sprint("Enter supervisor mode...\n");
+	uint64 hartid = read_tp();
+
+    sprint("hartid = %lld: Enter supervisor mode...\n", hartid);
 	// in the beginning, we use Bare mode (direct) memory mapping as in lab1.
 	// but now, we are going to switch to the paging mode @lab2_1.
 	// note, the code still works in Bare mode when calling pmm_init() and kern_vm_init().
 	write_csr(satp, 0);
 
-	// init phisical memory manager
-	pmm_init();
+    if (SModeInit == No) {
+        SModeInit = Yes;
 
-	// build the kernel page table
-	kern_vm_init();
+        // init phisical memory manager
+        pmm_init();
 
-	// now, switch to paging mode by turning on paging (SV39)
-	enable_paging();
-	// the code now formally works in paging mode, meaning the page table is now in use.
-	sprint("kernel page table is on \n");
+        // build the kernel page table
+        kern_vm_init();
 
-	// added @lab3_1
-	init_proc_pool();
+        // now, switch to paging mode by turning on paging (SV39)
+        enable_paging();
+        // the code now formally works in paging mode, meaning the page table is now in use.
+        sprint("kernel page table is on \n");
 
-	// init file system, added @lab4_1
-	fs_init();
+        // added @lab3_1
+        init_proc_pool();
 
-	sprint("Switch to user mode...\n");
+        // init file system, added @lab4_1
+        fs_init();
+    }
+
+    sprint("hartid = %lld: Switch to user mode...\n", hartid);
 	// the application code (elf) is first loaded into memory, and then put into execution
 	// added @lab3_1
-	insert_to_ready_queue(load_user_program());
+    process* app = load_user_program();
+    if (app != NULL) {
+        insert_to_ready_queue(app);
+    }
+
+	spinlock_unlock(&CoreBootLock);
+    sync_barrier(&CoreBootCount, NCPU);
+
 	schedule();
 
 	// we should never reach here.

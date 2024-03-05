@@ -30,15 +30,17 @@ extern char trap_sec_start[];
 process procs[NPROC];
 
 // current points to the currently running user-mode application.
-process *current = NULL;
+process *current[NCPU] = { NULL };
 
 //
 // switch to a user-mode process
 //
 void switch_to(process *proc)
 {
+	uint64 hartid = read_tp();
+
 	assert(proc);
-	current = proc;
+	current[hartid] = proc;
 
 	// write the smode_trap_vector (64-bit func. address) defined in kernel/strap_vector.S
 	// to the stvec privilege register, such that trap handler pointed by smode_trap_vector
@@ -91,6 +93,8 @@ void init_proc_pool()
 //
 process *alloc_process()
 {
+	uint64 hartid = read_tp();
+
 	// locate the first usable process structure
 	int i;
 
@@ -115,6 +119,7 @@ process *alloc_process()
 	procs[i].kstack = (uint64)alloc_page() + PGSIZE; // user kernel stack top
 	uint64 user_stack = (uint64)alloc_page();		 // phisical address of user stack bottom
 	procs[i].trapframe->regs.sp = USER_STACK_TOP;	 // virtual address of user stack top
+	procs[i].trapframe->regs.tp = hartid;
 
 	// allocates a page to record memory regions (segments)
 	procs[i].mapped_info = (mapped_region *)alloc_page();
@@ -142,8 +147,8 @@ process *alloc_process()
 	procs[i].mapped_info[SYSTEM_SEGMENT].npages = 1;
 	procs[i].mapped_info[SYSTEM_SEGMENT].seg_type = SYSTEM_SEGMENT;
 
-	sprint("in alloc_proc. user frame 0x%lx, user stack 0x%lx, user kstack 0x%lx \n",
-		   procs[i].trapframe, procs[i].trapframe->regs.sp, procs[i].kstack);
+	sprint("hartid = %lld: in alloc_proc. user frame 0x%lx, user stack 0x%lx, user kstack 0x%lx \n",
+		   hartid, procs[i].trapframe, procs[i].trapframe->regs.sp, procs[i].kstack);
 
 	// initialize the process's heap manager
 	procs[i].user_heap.heap_top = USER_FREE_ADDRESS_START;
@@ -159,10 +164,11 @@ process *alloc_process()
 
 	// initialize files_struct
 	procs[i].pfiles = init_proc_file_management();
-	sprint("in alloc_proc. build proc_file_management successfully.\n");
+	sprint("hartid = %lld: in alloc_proc. build proc_file_management successfully.\n", hartid);
 
 	procs[i].parent = NULL;
 	procs[i].waitpid = 0;
+	procs[i].hartid = -1;
 
 	// return after initialization.
 	return &procs[i];
@@ -191,7 +197,9 @@ int free_process(process *proc)
 //
 int do_fork(process *parent)
 {
-	sprint("will fork a child from parent %d.\n", parent->pid);
+	uint64 hartid = read_tp();
+
+	sprint("hartid = %lld: will fork a child from parent %d.\n", hartid, parent->pid);
 	process *child = alloc_process();
 	for (int i = 0; i < parent->total_mapped_region; i++)
 	{
@@ -225,8 +233,8 @@ int do_fork(process *parent)
 				}
 
 				// copy and map the heap blocks
-				for (uint64 heap_block = current->user_heap.heap_bottom;
-					 heap_block < current->user_heap.heap_top; heap_block += PGSIZE)
+				for (uint64 heap_block = current[hartid]->user_heap.heap_bottom;
+					 heap_block < current[hartid]->user_heap.heap_top; heap_block += PGSIZE)
 				{
 					if (free_block_filter[(heap_block - heap_bottom) / PGSIZE]) // skip free blocks
 						continue;
@@ -265,7 +273,7 @@ int do_fork(process *parent)
 				parent->mapped_info[i].npages;
 			child->mapped_info[child->total_mapped_region].seg_type = CODE_SEGMENT;
 			child->total_mapped_region++;
-			sprint("do_fork map code segment at pa:%lx of parent to child at va:%lx.\n", lookup_pa(parent->pagetable, parent->mapped_info[i].va), parent->mapped_info[i].va); // 增添此行(根据doc打印)
+			sprint("hartid = %lld: do_fork map code segment at pa:%lx of parent to child at va:%lx.\n", hartid, lookup_pa(parent->pagetable, parent->mapped_info[i].va), parent->mapped_info[i].va); // 增添此行(根据doc打印)
 			break;
 		}
 	}
