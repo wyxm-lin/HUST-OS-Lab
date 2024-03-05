@@ -100,6 +100,8 @@ process *load_user_program()
             panic("You need to specify the application program!\n");
     }
 
+	strcpy(proc->path, arg_bug_msg.argv[argc]);
+
 	load_bincode_from_host_elf(proc, arg_bug_msg.argv[hartid]);
 	return proc;
 }
