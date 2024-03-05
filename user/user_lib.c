@@ -213,15 +213,10 @@ int pwd_u(char *buf)
 
 int cd_u(char *path)
 {
-	int rc = do_user_call(SYS_user_cd, (uint64)path, 0, 0, 0, 0, 0, 0);
-	if (rc == -1)
-	{
-		printu("cd: %s: No such file or directory\n", path);
-	}
-	return 0;
+	return do_user_call(SYS_user_cd, (uint64)path, 0, 0, 0, 0, 0, 0);
 }
 
-int scanf_u(const char* s, ...)
+int scanf_u(const char *s, ...)
 {
 	va_list vl;
 	va_start(vl, s);
@@ -238,7 +233,63 @@ int shell()
 	return do_user_call(SYS_user_shell, 0, 0, 0, 0, 0, 0, 0);
 }
 
-void work(char* commandlist) 
+static void sscanf(char *dst, char *src, int *idx)
 {
-	
+	int i = *idx;
+	while (src[i] == ' ')
+		i++;
+	while (src[i] != ' ' && src[i] != '\0')
+	{
+		*dst = src[i];
+		dst++;
+		i++;
+	}
+	*idx = i;
+	*dst = '\0';
+}
+
+void PWD();
+void CD(char *command, int *idx);
+
+void work(char *commandlist)
+{
+	char command[256];
+	int idx = 0;
+	sscanf(command, commandlist, &idx);
+
+	if (strcmp(command, "") == 0 || strcmp(command, "\n") == 0)
+	{
+		return;
+	}
+	else if (strcmp(command, "pwd") == 0)
+	{
+		PWD();
+	}
+	else if (strcmp(command, "cd") == 0)
+	{
+		CD(commandlist, &idx);
+	}
+	else
+	{
+		printu("command not found: %s\n", command);
+	}
+}
+
+void PWD()
+{
+	char buf[256];
+	memset(buf, 0, sizeof(buf));
+	pwd_u(buf);
+	printu("%s\n", buf);
+}
+
+void CD(char *commandlist, int *idx)
+{
+	char arg[256];
+	sscanf(arg, commandlist, idx);
+	int rc = cd_u(arg);
+	if (rc == -1)
+	{
+		printu("cd: %s: No such file or directory\n", arg);
+	}
 }
