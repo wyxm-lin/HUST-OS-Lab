@@ -254,6 +254,7 @@ void MKDIR(char *command, int *idx);
 void LS(char *command, int *idx);
 void CAT(char *command, int *idx);
 void TOUCH(char *command, int *idx);
+void ECHO(char *command, int *idx);
 
 int work(char *commandlist)
 {
@@ -290,6 +291,10 @@ int work(char *commandlist)
 	else if (strcmp(command, "touch") == 0)
 	{
 		TOUCH(commandlist, &idx);
+	}
+	else if (strcmp(command, "echo") == 0)
+	{
+		ECHO(commandlist, &idx);
 	}
 	else
 	{
@@ -374,4 +379,17 @@ void TOUCH(char *command, int *idx)
 		write_u(fd, buf, sizeof(buf));
 	}
 	close(fd);
+}
+
+void ECHO(char *command, int *idx) 
+{
+	char arg[256];
+	while (TRUE) {
+		sscanf(arg, command, idx);
+		if (strcmp(arg, "") == 0) {
+			break;
+		}
+		printu("%s ", arg);
+	}
+	printu("\n");
 }
