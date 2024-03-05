@@ -10,9 +10,15 @@ typedef enum
     invalid
 } status;
 
+#define RFSRoot "/RAMDISK0"
+
+void ParsePath(char *path);
 void my_sscanf(char *dst, char *src, int *index);
 int work(char *commandlist);
-void ls(char *path);
+
+void ls(char *commandList, int* index);
+void pwd();
+void cd(char *commandList, int* index);
 
 int main()
 {
@@ -28,6 +34,42 @@ int main()
     }
     exit(0);
     return 0;
+}
+
+void ParsePath(char *path)
+{
+    char result[512];
+    memset(result, 0, sizeof(result));
+    char *ptr = result;
+    char *token = strtok(path, "/");
+
+    while (token != NULL)
+    {
+        if (strcmp(token, ".") == 0 || strcmp(token, "/") == 0)
+        {
+            // do nothing
+        }
+        else if (strcmp(token, "..") == 0)
+        {
+            while (*ptr != '\0' && *ptr != '/')
+            {
+                *ptr = '\0';
+                ptr--;
+            }
+            *ptr = '\0';
+        }
+        else
+        {
+            strcat(result, "/");
+            strcat(result, token);
+            ptr = result + strlen(result) - 1;
+        }
+        token = strtok(NULL, "/");
+    }
+    if (*result == '\0')
+        *result = '/';
+
+    strcpy(path, result);
 }
 
 void my_sscanf(char *dst, char *src, int *index)
@@ -46,37 +88,6 @@ void my_sscanf(char *dst, char *src, int *index)
     *index = i;
 }
 
-status path_cat(char *path)
-{
-    if (path[0] == '\0' || path[0] == '/' || (path[0] == '.' && path[1] == '/') || (path[0] == '.' && path[1] == '.' && path[2] == '/'))
-    {
-        if (path[0] == '/')
-            ;
-        else if (path[0] == '\0')
-        {
-            char cwd[256];
-            read_cwd(cwd);
-            strcpy(path, cwd);
-        }
-        else if (path[0] == '.' && path[1] == '/')
-        {
-            char cwd[256];
-            read_cwd(cwd);
-            strcat(cwd, path + 2);
-            strcpy(path, cwd);
-        }
-        else if (path[0] == '.' && path[1] == '.' && path[2] == '/')
-        {
-            char cwd[256];
-            read_cwd(cwd);
-            strcat(cwd, path + 3);
-            strcpy(path, cwd);
-        }
-        return valid;
-    }
-    return invalid;
-}
-
 int work(char *commandlist)
 {
     char command[256];
@@ -91,23 +102,16 @@ int work(char *commandlist)
     }
     else if (strcmp(command, "ls") == 0)
     {
-        char arg[256];
-        memset(arg, 0, 256);
-        my_sscanf(arg, commandlist, &idx);
-        ls(arg);
+        ls(commandlist, &idx);
     }
     else if (strcmp(command, "pwd") == 0)
     {
-        char path[256];
-        read_cwd(path);
-        printu("%s\n", path);
+        pwd();
     }
     else if (strcmp(command, "cd") == 0)
     {
-        char arg[256];
-        memset(arg, 0, 256);
-        my_sscanf(arg, commandlist, &idx);
-        change_cwd(arg);
+        
+
     }
     else if (strcmp(command, "mkdir") == 0)
     {
@@ -119,38 +123,62 @@ int work(char *commandlist)
     return 0;
 }
 
-void ls(char *path)
-{
-    if (path_cat(path) == valid)
+void ls(char *commandlist, int* index) {
+    char arg[256];
+    memset(arg, 0, 256);
+    my_sscanf(arg, commandlist, index);
+
+    char path[256];
+    memset(path, 0, 256);
+    read_cwd(path);
+    strcat(path, "/");
+    strcat(path, arg);
+    ParsePath(path);
+    // printu("%s\n", path);
+    int dir_fd = opendir_u(path);
+    if (dir_fd < 0)
     {
-        printu("the path is %s\n", path);
-        int dir_fd = opendir_u(path);
-        if (dir_fd == -1)
-        {
-            printu("ls: cannot access '%s': No such file or directory\n", path);
-            return;
-        }
-        printu("---------- ls command -----------\n");
-        printu("ls \"%s\":\n", path);
-        printu("[name]               [inode_num]\n");
-        struct dir dir;
-        int width = 20;
-        while (readdir_u(dir_fd, &dir) == 0)
-        {
-            // we do not have %ms :(
-            char name[width + 1];
-            memset(name, ' ', width + 1);
-            name[width] = '\0';
-            if (strlen(dir.name) < width)
-            {
-                strcpy(name, dir.name);
-                name[strlen(dir.name)] = ' ';
-                printu("%s %d\n", name, dir.inum);
-            }
-            else
-                printu("%s %d\n", dir.name, dir.inum);
-        }
-        printu("------------------------------\n");
-        closedir_u(dir_fd);
+        printu("ls: cannot access '%s': No such file or directory\n", arg);
+        return;
     }
+    printu("[name]               [inode_num]\n");
+    struct dir dir;
+    int width = 256;
+    while (readdir_u(dir_fd, &dir) == 0)
+    {
+        // we do not have %ms :(
+        char name[width + 1];
+        memset(name, ' ', width + 1);
+        name[width] = '\0';
+        if (strlen(dir.name) < width)
+        {
+            strcpy(name, dir.name);
+            name[strlen(dir.name)] = ' ';
+            printu("%s %d\n", name, dir.inum);
+        }
+        else
+            printu("%s %d\n", dir.name, dir.inum);
+    }
+    printu("\n");
+    closedir_u(dir_fd);
+
+}
+
+void pwd() {
+    char path[256];
+    read_cwd(path);
+    printu("%s\n", path);
+}
+
+void cd(char *commandlist, int* index) {
+    char arg[256];
+    memset(arg, 0, 256);
+    my_sscanf(arg, commandlist, index);
+
+    char path[256];
+    read_cwd(path);
+    strcat(path, "/");
+    strcat(path, arg);
+    ParsePath(path);
+
 }

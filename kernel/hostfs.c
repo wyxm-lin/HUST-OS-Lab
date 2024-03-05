@@ -279,8 +279,37 @@ int hostfs_unlink(struct vinode *parent, struct dentry *sub_dentry, struct vinod
 
 int hostfs_readdir(struct vinode *dir_vinode, struct dir *dir, int *offset)
 {
-	panic("hostfs_readdir not implemented!\n");
-	return -1;
+	// int total_direntrys = dir_vinode->size / sizeof(struct hostfs_direntry);
+    // int one_block_direntrys = RFS_BLKSIZE / sizeof(struct rfs_direntry);
+
+    // int direntry_index = *offset;
+    // if (direntry_index >= total_direntrys)
+    // {
+    //     // no more direntry
+    //     return -1;
+    // }
+
+    // // reads a directory entry from the directory cache stored in vfs inode.
+    // struct rfs_dir_cache *dir_cache =
+    //     (struct rfs_dir_cache *)dir_vinode->i_fs_info;
+    // struct rfs_direntry *p_direntry = dir_cache->dir_base_addr + direntry_index;
+
+    // // TODO (lab4_2): implement the code to read a directory entry.
+    // // hint: in the above code, we had found the directory entry that located at the
+    // // *offset, and used p_direntry to point it.
+    // // in the remaining processing, we need to return our discovery.
+    // // the method of returning is to popular proper members of "dir", more specifically,
+    // // dir->name and dir->inum.
+    // // note: DO NOT DELETE CODE BELOW PANIC.
+    // // panic("You need to implement the code for reading a directory entry of rfs in lab4_2.\n" );
+    // memcpy(dir->name, p_direntry->name, RFS_MAX_FILE_NAME_LEN);
+    // dir->inum = p_direntry->inum;
+    // // DO NOT DELETE CODE BELOW.
+    // (*offset)++;
+    // return 0;
+
+	// panic("hostfs_readdir not implemented!\n");
+	// return -1;
 }
 
 struct vinode *hostfs_mkdir(struct vinode *parent, struct dentry *sub_dentry)

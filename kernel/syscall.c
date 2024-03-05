@@ -350,38 +350,11 @@ ssize_t sys_user_cwd(uint64 path) {
 	return 0;
 }
 
-static MyStatus is_valid_path(char* path) {
-	if (path[0] == '/') {
-
-	}
-	else if (path[0] == '.') {
-
-	}
-	else {
-		return False;
-	}
-}
-
 ssize_t sys_user_chdir(uint64 path) {
-	return 0;
 	uint64 hartid = read_tp();
 
 	char* pa = (char*)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), (void *)path);
-	MyStatus valid = is_valid_path(pa);
-	if (valid == False) {
-		return INVALID;
-	}
 
-	char tmp[MAX_PATH_LEN];
-	memset(tmp, 0, MAX_PATH_LEN);
-	memcpy(tmp, current[hartid]->pfiles->cwd->name, strlen(current[hartid]->pfiles->cwd->name));
-	
-	if (pa[0] == '.') { // 相对路径
-	}
-	else if (pa[0] == '/') { // 绝对路径
-
-	}
-	else;
 	return 0;
 }
 
