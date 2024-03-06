@@ -54,6 +54,11 @@ int exit(int code)
 	return do_user_call(SYS_user_exit, code, 0, 0, 0, 0, 0, 0);
 }
 
+void printpa(int* va)
+{
+  do_user_call(SYS_user_printpa, (uint64)va, 0, 0, 0, 0, 0, 0);
+}
+
 //
 // lib call to naive_malloc
 //
@@ -415,9 +420,4 @@ void sem_P(int sem)
 void sem_V(int sem)
 {
 	do_user_call(SYS_user_sem_V, sem, 0, 0, 0, 0, 0, 0);
-}
-
-void printpa(int* va)
-{
-  do_user_call(SYS_user_printpa, (uint64)va, 0, 0, 0, 0, 0, 0);
 }

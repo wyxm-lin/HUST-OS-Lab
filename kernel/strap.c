@@ -78,8 +78,8 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval)
 			pte_t *pte = page_walk(current[hartid]->pagetable, stval, 1);
 			if ((RSW((*pte))) == Yes) {
 				uint64 origin_pa = PTE2PA(*pte);
-				// uint64 print_pa = origin_pa + (stval & ((1 << PGSHIFT) - 1));
-				// sprint("%d\n", print_pa);
+				uint64 print_pa = origin_pa + (stval & ((1 << PGSHIFT) - 1));
+				sprint("%p\n", print_pa);
 				memcpy(pa, (void*)origin_pa, PGSIZE);
 				free_page((void *)origin_pa);
 			}

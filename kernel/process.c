@@ -265,13 +265,13 @@ int do_fork(process *parent)
 			// segment of parent process.
 			// DO NOT COPY THE PHYSICAL PAGES, JUST MAP THEM.
 			// panic( "You need to implement the code segment mapping of child in lab3_1.\n" );
-			map_pages(child->pagetable, parent->mapped_info[i].va,
-					  parent->mapped_info[i].npages, lookup_pa(parent->pagetable, parent->mapped_info[i].va),
-					  prot_to_type(PROT_READ | PROT_EXEC, 1));
-			// after mapping, register the vm region (do not delete codes below!)
+			for (int j = 0; j < parent->mapped_info[i].npages; j++) {
+				map_pages(child->pagetable, parent->mapped_info[i].va + j * PGSIZE, PGSIZE, 
+						lookup_pa(parent->pagetable, parent->mapped_info[i].va + j * PGSIZE),
+						prot_to_type(PROT_READ | PROT_EXEC, 1));
+			}
 			child->mapped_info[child->total_mapped_region].va = parent->mapped_info[i].va;
-			child->mapped_info[child->total_mapped_region].npages =
-				parent->mapped_info[i].npages;
+			child->mapped_info[child->total_mapped_region].npages = parent->mapped_info[i].npages;
 			child->mapped_info[child->total_mapped_region].seg_type = CODE_SEGMENT;
 			child->total_mapped_region++;
 			sprint("hartid = %lld >> do_fork map code segment at pa:%lx of parent to child at va:%lx.\n", hartid, lookup_pa(parent->pagetable, parent->mapped_info[i].va), parent->mapped_info[i].va); // 增添此行(根据doc打印)

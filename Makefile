@@ -70,41 +70,11 @@ USER_OBJS  		:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_CPPS)))
 
 USER_TARGET 	:= $(HOSTFS_ROOT)/bin/app_shell
 
-USER_CPPS0 		:= user/app0.c user/user_lib.c
-
-USER_OBJS0  	:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_CPPS0)))
-
-USER_TARGET0 	:= $(HOSTFS_ROOT)/bin/app0
-
-# USER_CPPS1 		:= user/app1.c user/user_lib.c
-
-# USER_OBJS1  	:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_CPPS1)))
-
-# USER_TARGET1 	:= $(HOSTFS_ROOT)/bin/app1
-
-# USER_CPPS2 		:= user/lab3_1.c user/user_lib.c
-
-# USER_OBJS2  	:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_CPPS2)))
-
-# USER_TARGET2	:= $(HOSTFS_ROOT)/bin/lab3_1
-
-# USER_CPPS3 		:= user/lab3_2.c user/user_lib.c
-
-# USER_OBJS3  	:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_CPPS3)))
-
-# USER_TARGET3	:= $(HOSTFS_ROOT)/bin/lab3_2
-
-# USER_CPPS4 		:= user/lab3_3.c user/user_lib.c
-
-# USER_OBJS4  	:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_CPPS4)))
-
-# USER_TARGET4	:= $(HOSTFS_ROOT)/bin/lab3_3
-
-USER_CPPS5 		:= user/lab2_1.c user/user_lib.c
+USER_CPPS5 		:= user/lab3_3.c user/user_lib.c
 
 USER_OBJS5  	:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_CPPS5)))
 
-USER_TARGET5	:= $(HOSTFS_ROOT)/bin/lab2_1
+USER_TARGET5	:= $(HOSTFS_ROOT)/bin/lab3_3
 #------------------------targets------------------------
 $(OBJ_DIR):
 	@-mkdir -p $(OBJ_DIR)	
@@ -149,41 +119,6 @@ $(USER_TARGET): $(OBJ_DIR) $(UTIL_LIB) $(USER_OBJS)
 	@echo "User app has been built into" \"$@\"
 	@cp $@ $(OBJ_DIR)
 
-# $(USER_TARGET0): $(OBJ_DIR) $(UTIL_LIB) $(USER_OBJS0)
-# 	@echo "linking" $@	...	
-# 	-@mkdir -p $(HOSTFS_ROOT)/bin
-# 	@$(COMPILE) --entry=main $(USER_OBJS0) $(UTIL_LIB) -o $@
-# 	@echo "User app has been built into" \"$@\"
-# 	@cp $@ $(OBJ_DIR)
-
-# $(USER_TARGET1): $(OBJ_DIR) $(UTIL_LIB) $(USER_OBJS1)
-# 	@echo "linking" $@	...	
-# 	-@mkdir -p $(HOSTFS_ROOT)/bin
-# 	@$(COMPILE) --entry=main $(USER_OBJS1) $(UTIL_LIB) -o $@
-# 	@echo "User app has been built into" \"$@\"
-# 	@cp $@ $(OBJ_DIR)
-
-# $(USER_TARGET2): $(OBJ_DIR) $(UTIL_LIB) $(USER_OBJS2)
-# 	@echo "linking" $@	...	
-# 	-@mkdir -p $(HOSTFS_ROOT)/bin
-# 	@$(COMPILE) --entry=main $(USER_OBJS2) $(UTIL_LIB) -o $@
-# 	@echo "User app has been built into" \"$@\"
-# 	@cp $@ $(OBJ_DIR)
-
-# $(USER_TARGET3): $(OBJ_DIR) $(UTIL_LIB) $(USER_OBJS3)
-# 	@echo "linking" $@	...	
-# 	-@mkdir -p $(HOSTFS_ROOT)/bin
-# 	@$(COMPILE) --entry=main $(USER_OBJS3) $(UTIL_LIB) -o $@
-# 	@echo "User app has been built into" \"$@\"
-# 	@cp $@ $(OBJ_DIR)
-
-# $(USER_TARGET4): $(OBJ_DIR) $(UTIL_LIB) $(USER_OBJS4)
-# 	@echo "linking" $@	...	
-# 	-@mkdir -p $(HOSTFS_ROOT)/bin
-# 	@$(COMPILE) --entry=main $(USER_OBJS4) $(UTIL_LIB) -o $@
-# 	@echo "User app has been built into" \"$@\"
-# 	@cp $@ $(OBJ_DIR)
-
 $(USER_TARGET5): $(OBJ_DIR) $(UTIL_LIB) $(USER_OBJS5)
 	@echo "linking" $@	...	
 	-@mkdir -p $(HOSTFS_ROOT)/bin
@@ -196,14 +131,14 @@ $(USER_TARGET5): $(OBJ_DIR) $(UTIL_LIB) $(USER_OBJS5)
 
 .DEFAULT_GOAL := $(all)
 
-all: $(KERNEL_TARGET) $(USER_TARGET) $(USER_TARGET0) $(USER_TARGET5)
+all: $(KERNEL_TARGET) $(USER_TARGET) $(USER_TARGET5)
 	@echo "********************HUST PKE********************"
 	@echo "All targets have been built successfully!"
 .PHONY:all
 
-run: $(KERNEL_TARGET) $(USER_TARGET)
+run: $(KERNEL_TARGET) $(USER_TARGET) $(USER_TARGET5)
 	@echo "********************HUST PKE********************"
-	spike -p2 $(KERNEL_TARGET) /bin/lab2_1
+	spike -p2 $(KERNEL_TARGET) /bin/lab3_3
 
 # need openocd!
 gdb:$(KERNEL_TARGET) $(USER_TARGET)
@@ -220,8 +155,8 @@ gdb_clean:
 	@sleep 1
 
 objdump:
-	riscv64-unknown-elf-objdump -d $(KERNEL_TARGET) > $(OBJ_DIR)/kernel_dump
-	riscv64-unknown-elf-objdump -d $(USER_TARGET) > $(OBJ_DIR)/user_dump
+	riscv64-unknown-elf-objdump -d $(KERNEL_TARGET) $(USER_TARGET5) > $(OBJ_DIR)/kernel_dump
+	riscv64-unknown-elf-objdump -d $(USER_TARGET) $(USER_TARGET5) > $(OBJ_DIR)/user_dump
 
 cscope:
 	find ./ -name "*.c" > cscope.files
