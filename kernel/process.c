@@ -171,6 +171,7 @@ process *alloc_process()
 
 	procs[i].parent = NULL;
 	procs[i].waitpid = 0;
+	procs[i].waitsem = -1;
 	memset(procs[i].path, 0, sizeof(procs[i].path));
 
 	// return after initialization.

@@ -97,7 +97,8 @@ void schedule()
 	while (TRUE)
 	{
 		uint64 choice = choose_core(); // 选中的核一定是idle的核心，所以current无须上锁
-		if (choice == -1) {
+		if (choice == -1)
+		{
 			asm volatile("ecall");
 			break;
 		}
@@ -108,7 +109,8 @@ void schedule()
 		set_busy(choice);
 		sprint("hartid = %lld >> hartid = %lld going to schedule process %d to run.\n", hartid, choice, current[choice]->pid);
 		ready_queue_head = ready_queue_head->queue_next;
-		if (ready_queue_head == NULL) {
+		if (ready_queue_head == NULL)
+		{
 			asm volatile("ecall");
 			break;
 		}
@@ -116,15 +118,69 @@ void schedule()
 
 	if (get_core_status(hartid) == CORE_STATUS_IDLE)
 	{
-		//sprint("hartid = %lld >> will enter idle.\n", hartid);
+		// sprint("hartid = %lld >> will enter idle.\n", hartid);
 		spinlock_unlock(&ready_queue_lock);
-		//sprint("hartid = %lld >> leave the scheduler.\n", hartid);
+		// sprint("hartid = %lld >> leave the scheduler.\n", hartid);
 		idle_process(hartid);
 	}
 	else
 	{
 		spinlock_unlock(&ready_queue_lock);
-		//sprint("hartid = %lld >> leave the scheduler.\n", hartid);
+		// sprint("hartid = %lld >> leave the scheduler.\n", hartid);
 		switch_to(current[hartid]);
 	}
+}
+
+int sems[SEM_MAX];
+int cnt = -1;
+spinlock_t sem_lock[SEM_MAX];
+
+int sem_new(int value)
+{
+	spinlock_lock(&sem_lock[++cnt]);
+	sems[cnt] = value;
+	int ret = cnt;
+	spinlock_unlock(&sem_lock[cnt]);
+	return ret;
+}
+
+int sem_P(uint64 sem)
+{
+	spinlock_lock(&sem_lock[sem]);
+	sems[sem]--;
+	if (sems[sem] < 0)
+	{
+		uint64 hartid = read_tp();
+		current[hartid]->status = BLOCKED;
+		current[hartid]->waitsem = sem; // 别把waitsem 写成 waitpid了
+		set_idle(hartid);
+		spinlock_unlock(&sem_lock[sem]);
+		schedule();
+	}
+	else
+	{
+		spinlock_unlock(&sem_lock[sem]);
+	}
+	return 0;
+}
+
+int sem_V(uint64 sem)
+{
+	spinlock_lock(&sem_lock[sem]);
+	sems[sem]++;
+	if (sems[sem] <= 0)
+	{
+		for (int i = 0; i < NPROC; i++)
+		{
+			if (procs[i].status == BLOCKED && procs[i].waitsem == sem)
+			{
+				procs[i].waitsem = -1;
+				insert_to_ready_queue(&procs[i]);
+				spinlock_unlock(&sem_lock[sem]);
+				break;
+			}
+		}
+	}
+	spinlock_unlock(&sem_lock[sem]);
+	return 0;
 }

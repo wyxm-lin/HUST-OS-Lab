@@ -423,20 +423,17 @@ ssize_t sys_user_shell()
 
 int sys_user_sem_new(int value)
 {
-	return 0;
-	// return sem_new(value);
+	return sem_new(value);
 }
 
 ssize_t sys_user_sem_P(int sem)
 {
-	return 0;
-	// return sem_P(sem);
+	return sem_P(sem);
 }
 
 ssize_t sys_user_sem_V(int sem)
 {
-	return 0;
-	// return sem_V(sem);
+	return sem_V(sem);
 }
 
 //

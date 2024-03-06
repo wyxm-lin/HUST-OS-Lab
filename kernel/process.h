@@ -109,6 +109,7 @@ typedef struct process_t
     proc_file_management *pfiles;
 
     int waitpid;
+    int waitsem;
 
     char path[256];
     char* debugline;
