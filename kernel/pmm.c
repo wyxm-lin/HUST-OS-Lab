@@ -16,6 +16,10 @@ extern uint64 g_mem_size;
 static uint64 free_mem_start_addr; // beginning address of free memory
 static uint64 free_mem_end_addr;   // end address of free memory (not included)
 
+
+
+
+
 typedef struct node
 {
 	struct node *next;

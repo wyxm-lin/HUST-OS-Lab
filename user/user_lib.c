@@ -416,3 +416,8 @@ void sem_V(int sem)
 {
 	do_user_call(SYS_user_sem_V, sem, 0, 0, 0, 0, 0, 0);
 }
+
+void printpa(int* va)
+{
+  do_user_call(SYS_user_printpa, (uint64)va, 0, 0, 0, 0, 0, 0);
+}

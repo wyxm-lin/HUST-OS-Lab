@@ -47,5 +47,6 @@ int work(char* commandlist);
 int sem_new(int value);
 void sem_P(int sem);
 void sem_V(int sem);
+void printpa(int* va);
 
 #endif

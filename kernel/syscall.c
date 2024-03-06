@@ -30,6 +30,7 @@ ssize_t sys_user_print(const char *buf, size_t n)
 
 	assert(current[hartid]);
 	char *pa = (char *)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), (void *)buf);
+	sprint("hartid = %lld >> ", hartid);
 	sprint(pa);
 	return 0;
 }
@@ -46,7 +47,8 @@ ssize_t sys_user_exit(uint64 code)
 
 	if (current[hartid]->parent != NULL && current[hartid]->parent->status == BLOCKED)
 	{
-		if (current[hartid]->parent->waitpid == -1) {
+		if (current[hartid]->parent->waitpid == -1)
+		{
 			insert_to_ready_queue(current[hartid]->parent);
 		}
 		else if (current[hartid]->parent->waitpid == current[hartid]->pid)
@@ -436,6 +438,14 @@ ssize_t sys_user_sem_V(int sem)
 	return sem_V(sem);
 }
 
+ssize_t sys_user_printpa(uint64 va)
+{
+	uint64 hartid = read_tp();
+	uint64 pa = (uint64)user_va_to_pa((pagetable_t)(current[hartid]->pagetable), (void *)va);
+	sprint("%lx\n", pa);
+	return 0;
+}
+
 //
 // [a0]: the syscall number; [a1] ... [a7]: arguments to the syscalls.
 // returns the code of success, (e.g., 0 means success, fail for otherwise)
@@ -504,6 +514,8 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
 		return sys_user_sem_P(a1);
 	case SYS_user_sem_V:
 		return sys_user_sem_V(a1);
+	case SYS_user_printpa:
+		return sys_user_printpa(a1);
 	default:
 		panic("Unknown syscall %ld \n", a0);
 	}

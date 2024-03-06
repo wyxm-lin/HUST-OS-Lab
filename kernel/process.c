@@ -241,12 +241,11 @@ int do_fork(process *parent)
 					if (free_block_filter[(heap_block - heap_bottom) / PGSIZE]) // skip free blocks
 						continue;
 
-					void *child_pa = alloc_page();
-					memcpy(child_pa, (void *)lookup_pa(parent->pagetable, heap_block), PGSIZE);
-					user_vm_map((pagetable_t)child->pagetable, heap_block, PGSIZE, (uint64)child_pa,
-								prot_to_type(PROT_WRITE | PROT_READ, 1));
-
-					// sprint("the pa is %lx, the va is %lx\n", child_pa, heap_block);
+					// void *child_pa = alloc_page();
+					// memcpy(child_pa, (void *)lookup_pa(parent->pagetable, heap_block), PGSIZE);
+					// user_vm_map((pagetable_t)child->pagetable, heap_block, PGSIZE, (uint64)child_pa,
+					// 			prot_to_type(PROT_WRITE | PROT_READ, 1));
+					cow_vm_map((pagetable_t)child->pagetable, heap_block, lookup_pa(parent->pagetable, heap_block));
 				}
 
 				child->mapped_info[HEAP_SEGMENT].npages = parent->mapped_info[HEAP_SEGMENT].npages;
