@@ -12,6 +12,7 @@
 #include "util/functions.h"
 
 #include "spike_interface/spike_utils.h"
+#include "core.h"
 
 //
 // handling the syscalls. will call do_syscall() defined in kernel/syscall.c
@@ -104,6 +105,7 @@ void rrsched()
 	{
 		current[hartid]->tick_count = 0;
 		insert_to_ready_queue(current[hartid]);
+		set_idle(hartid);
 		schedule();
 	}
 }
@@ -115,6 +117,7 @@ void rrsched()
 void smode_trap_handler(void)
 {
 	uint64 hartid = read_tp();
+	// sprint("hartid = %lld: smode_trap_handler() is called.\n", hartid);
 
 	// make sure we are in User mode before entering the trap handling.
 	// we will consider other previous case in lab1_3 (interrupt).
@@ -128,7 +131,7 @@ void smode_trap_handler(void)
 	// if the cause of trap is syscall from user application.
 	// read_csr() and CAUSE_USER_ECALL are macros defined in kernel/riscv.h
 	uint64 cause = read_csr(scause);
-
+	// sprint("hartid = %lld: scause=%p sepc=%p stval=%p\n", hartid, cause, read_csr(sepc), read_csr(stval));
 	// use switch-case instead of if-else, as there are many cases since lab2_3.
 	switch (cause)
 	{

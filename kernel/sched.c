@@ -29,12 +29,14 @@ void insert_to_ready_queue(process *proc)
 
 	process *p;
 	for (p = ready_queue_head; p->queue_next != NULL; p = p->queue_next)
-		if (p == proc) {
+		if (p == proc)
+		{
 			spinlock_unlock(&ready_queue_lock);
 			return;
 		}
 
-	if (p == proc) {
+	if (p == proc)
+	{
 		spinlock_unlock(&ready_queue_lock);
 		return;
 	}
@@ -47,34 +49,42 @@ void insert_to_ready_queue(process *proc)
 	return;
 }
 
+// hartid从busy->idle 都在外面
+// hartid从idle->busy 只有可能在这里
+// 为所有处于idle的core分配任务
 void schedule()
 {
 	spinlock_lock(&ready_queue_lock);
 	uint64 hartid = read_tp();
-	set_idle(hartid);
-	current[hartid] = NULL;
+	// sprint("hartid = %lld: enter the scheduler.\n", hartid);
 
 	if (!ready_queue_head)
 	{
 		sprint("no more ready processes\n");
-		int should_shutdown = 1;
-		if (is_all_idle() == Yes) {
-			for (int i = 0; i < NPROC; i++) {
-				if ((procs[i].status != FREE) && (procs[i].status != ZOMBIE)) {
+		if (is_all_idle() == Yes)
+		{
+			for (int i = 0; i < NPROC; i++)
+			{
+				if ((procs[i].status != FREE) && (procs[i].status != ZOMBIE))
+				{
 					sprint("ready queue empty, but process %d is not in free/zombie state:%d\n", i, procs[i].status);
 					panic("Not handled: we should let system wait for unfinished processes.\n");
 				}
 			}
 			shutdown(0);
 		}
-		else {
+		else
+		{
 			sprint("hartid = %lld: ready queue empty, but some cores are still busy.\n", hartid);
 			spinlock_unlock(&ready_queue_lock);
+			// sprint("hartid = %lld: leave the scheduler.\n", hartid);
 			idle_process(hartid);
 		}
+		return; // never
 	}
 
-	while (TRUE) {
+	while (TRUE)
+	{
 		uint64 choice = choose_core();
 		if (choice == -1)
 			break;
@@ -88,8 +98,17 @@ void schedule()
 		if (ready_queue_head == NULL)
 			break;
 	}
-	spinlock_unlock(&ready_queue_lock);
-	if (current[hartid] != NULL) {
+
+	if (get_core_status(hartid) == CORE_STATUS_IDLE)
+	{
+		spinlock_unlock(&ready_queue_lock);
+		// sprint("hartid = %lld: leave the scheduler.\n", hartid);
+		idle_process(hartid);
+	}
+	else
+	{
+		spinlock_unlock(&ready_queue_lock);
+		// sprint("hartid = %lld: leave the scheduler.\n", hartid);
 		switch_to(current[hartid]);
 	}
 }

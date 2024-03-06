@@ -17,7 +17,10 @@ static void handle_misaligned_store() { panic("Misaligned AMO!"); }
 // added @lab1_3
 static void handle_timer()
 {
-	int cpuid = 0;
+	// sprint("come here\n");
+	uint64 hartid = read_tp();
+
+	int cpuid = hartid;
 	// setup the timer fired at next time (TIMER_INTERVAL from now)
 	*(uint64 *)CLINT_MTIMECMP(cpuid) = *(uint64 *)CLINT_MTIMECMP(cpuid) + TIMER_INTERVAL;
 
@@ -30,6 +33,8 @@ static void handle_timer()
 //
 void handle_mtrap()
 {
+	uint64 hartid = read_tp();
+	// sprint("hartid = %lld: handle_mtrap() is called.\n", hartid);
 	uint64 mcause = read_csr(mcause);
 	switch (mcause)
 	{

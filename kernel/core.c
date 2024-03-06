@@ -20,7 +20,7 @@ uint64 choose_core() {
     uint64 MIN = 0x7fffffffffffffff;
     uint64 MIN_CORE = -1;
     for (int i = 0; i < NCPU; i++) {
-        if ( CoreInfo[i].status == CORE_STATUS_IDLE && CoreInfo[i].TaskRunCount <= MIN) { // FIXME
+        if ( CoreInfo[i].status == CORE_STATUS_IDLE && CoreInfo[i].TaskRunCount < MIN) {
             MIN = CoreInfo[i].TaskRunCount;
             MIN_CORE = i;
         }
@@ -30,7 +30,6 @@ uint64 choose_core() {
         return -1;
     }
     CoreInfo[MIN_CORE].TaskRunCount++;
-    // CoreInfo[MIN_CORE].status = CORE_STATUS_BUSY;
     spinlock_unlock(&core_info_lock);
     return MIN_CORE;
 }

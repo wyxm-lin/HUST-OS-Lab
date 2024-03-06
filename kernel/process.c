@@ -187,7 +187,7 @@ int free_process(process *proc)
 	// but for proxy kernel, it (memory leaking) may NOT be a really serious issue,
 	// as it is different from regular OS, which needs to run 7x24.
 	proc->status = ZOMBIE;
-
+	
 	return 0;
 }
 

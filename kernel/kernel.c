@@ -153,7 +153,7 @@ int s_start(void)
 
 	spinlock_unlock(&CoreBootLock);
     sync_barrier(&CoreBootCount, NCPU);
-
+	
 	schedule();
 
 	// we should never reach here.

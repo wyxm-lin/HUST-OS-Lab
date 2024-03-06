@@ -17,6 +17,7 @@
 
 #include "spike_interface/spike_utils.h"
 #include "vfs.h"
+#include "core.h"
 
 //
 // implement the SYS_user_print syscall
@@ -55,6 +56,7 @@ ssize_t sys_user_exit(uint64 code)
 	}
 
 	free_process(current[hartid]);
+	set_idle(hartid);
 	schedule();
 	return 0;
 }
@@ -125,6 +127,7 @@ ssize_t sys_user_yield()
 	// the rear of ready queue, and finally, schedule a READY process to run.
 	// panic( "You need to implement the yield syscall in lab3_2.\n" );
 	insert_to_ready_queue(current[hartid]);
+	set_idle(hartid);
 	schedule();
 	return 0;
 }
@@ -341,6 +344,7 @@ int sys_user_wait(int pid)
 	{
 		current[hartid]->status = BLOCKED;
 		current[hartid]->waitpid = -1;
+		set_idle(hartid);
 		schedule();
 		return current[hartid]->waitpid;
 	}
@@ -353,6 +357,7 @@ int sys_user_wait(int pid)
 		}
 		current[hartid]->status = BLOCKED;
 		current[hartid]->waitpid = pid;
+		set_idle(hartid);
 		schedule();
 		return current[hartid]->waitpid;
 	}
