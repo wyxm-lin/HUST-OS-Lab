@@ -28,17 +28,16 @@ static void *elf_alloc_mb(elf_ctx *ctx, uint64 elf_pa, uint64 elf_va, uint64 siz
 
 	// kassert(size < PGSIZE);
 	int cnt = size / PGSIZE + (size % PGSIZE != 0);
-	sprint("                                                                                                cnt is %d\n", cnt);
-	void* pa = NULL;
+	void *pa = NULL;
 
-	for (int i = 0; i < cnt; i ++) {
+	for (int i = 0; i < cnt; i++)
+	{
 		pa = alloc_page();
-		sprint("pa is %lx\n", (uint64)pa);
 		if (pa == 0)
 			panic("uvmalloc mem alloc falied\n");
 		memset((void *)pa, 0, PGSIZE);
 		user_vm_map((pagetable_t)msg->p->pagetable, elf_va + i * PGSIZE, PGSIZE, (uint64)pa,
-				prot_to_type(PROT_WRITE | PROT_READ | PROT_EXEC, 1));
+					prot_to_type(PROT_WRITE | PROT_READ | PROT_EXEC, 1));
 	}
 
 	return pa;
@@ -54,14 +53,14 @@ static uint64 elf_fpread(elf_ctx *ctx, void *dest, uint64 nb, uint64 offset)
 	return vfs_read(msg->f, dest, nb);
 }
 
-static uint64 elf_fpread_va(elf_ctx* ctx, void* va, uint64 nb, uint64 offset) 
+static uint64 elf_fpread_va(elf_ctx *ctx, void *va, uint64 nb, uint64 offset)
 {
-	elf_info * msg = (elf_info *)ctx->info;
+	elf_info *msg = (elf_info *)ctx->info;
 	int cnt = nb / PGSIZE + (nb % PGSIZE != 0);
-	sprint("in function elf_fpread_va the cnt is %d\n", cnt);
 	uint64 ret = 0;
-	for (int i = 0; i < cnt; i++) {
-		void* pa = (void*)lookup_pa((pagetable_t)msg->p->pagetable, (uint64)va + i * PGSIZE);
+	for (int i = 0; i < cnt; i++)
+	{
+		void *pa = (void *)lookup_pa((pagetable_t)msg->p->pagetable, (uint64)va + i * PGSIZE);
 		vfs_lseek(msg->f, offset + i * PGSIZE, SEEK_SET);
 		ret += vfs_read(msg->f, pa, nb > PGSIZE ? PGSIZE : nb);
 		nb -= PGSIZE;
@@ -297,19 +296,15 @@ void make_addr_line(elf_ctx *ctx, char *debug_line, uint64 length)
 }
 
 static char debug_line[0x2000]; // 使用足够大的静态全局变量
-static elf_status load_debug_line_info(elf_ctx* ctx, process* p) {
-    elf_sect_header debug_line_header;
-    if (elf_fpread(ctx, &debug_line_header, sizeof(debug_line_header), ctx->ehdr.shoff + 7 * sizeof(elf_sect_header)) != sizeof(elf_sect_header)) // comment: 7为.debug_line的section index
-        return EL_EIO;
-    if (elf_fpread(ctx, debug_line, debug_line_header.size, debug_line_header.offset) != debug_line_header.size)
-        return EL_EIO;
-    make_addr_line(ctx, debug_line, debug_line_header.size);
-    // sprint("lgm:start to see the debug_line comment\n");
-    // sprint("lgm:origin line_ind is %d\n", p->line_ind);
-    // for (int i = 0; i < p->line_ind; i++)
-    //     sprint("lgm:%p %d %d\n", p->line[i].addr, p->line[i].line, p->line[i].file);
-    // sprint("lgm:end to see the debug_line comment\n");
-    return EL_OK;
+static elf_status load_debug_line_info(elf_ctx *ctx, process *p)
+{
+	elf_sect_header debug_line_header;
+	if (elf_fpread(ctx, &debug_line_header, sizeof(debug_line_header), ctx->ehdr.shoff + 7 * sizeof(elf_sect_header)) != sizeof(elf_sect_header)) // comment: 7为.debug_line的section index
+		return EL_EIO;
+	if (elf_fpread(ctx, debug_line, debug_line_header.size, debug_line_header.offset) != debug_line_header.size)
+		return EL_EIO;
+	make_addr_line(ctx, debug_line, debug_line_header.size);
+	return EL_OK;
 }
 
 //
@@ -341,7 +336,7 @@ elf_status elf_load(elf_ctx *ctx)
 		void *dest = elf_alloc_mb(ctx, ph_addr.vaddr, ph_addr.vaddr, ph_addr.memsz);
 
 		// actual loading
-		if (elf_fpread_va(ctx, (void*)ph_addr.vaddr, ph_addr.memsz, ph_addr.off) != ph_addr.memsz)
+		if (elf_fpread_va(ctx, (void *)ph_addr.vaddr, ph_addr.memsz, ph_addr.off) != ph_addr.memsz)
 			return EL_EIO;
 
 		// record the vm region in proc->mapped_info. added @lab3_1
@@ -376,7 +371,6 @@ elf_status elf_load(elf_ctx *ctx)
 //
 // load the elf of user application, by using the spike file interface.
 //
-// comment:修改为由vfs读取文件 by teacher assistant
 void load_bincode_from_host_elf(process *p, char *filename)
 {
 	uint64 hartid = read_tp();

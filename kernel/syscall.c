@@ -18,6 +18,7 @@
 #include "spike_interface/spike_utils.h"
 #include "vfs.h"
 #include "core.h"
+#include "memory.h"
 
 //
 // implement the SYS_user_print syscall
@@ -66,30 +67,9 @@ ssize_t sys_user_exit(uint64 code)
 //
 // maybe, the simplest implementation of malloc in the world ... added @lab2_2
 //
-uint64 sys_user_allocate_page()
+uint64 sys_user_allocate_page(uint64 n)
 {
-	uint64 hartid = read_tp();
-
-	void *pa = alloc_page();
-	uint64 va;
-	// if there are previously reclaimed pages, use them first (this does not change the
-	// size of the heap)
-	if (current[hartid]->user_heap.free_pages_count > 0)
-	{
-		va = current[hartid]->user_heap.free_pages_address[--current[hartid]->user_heap.free_pages_count];
-		assert(va < current[hartid]->user_heap.heap_top);
-	}
-	else
-	{
-		// otherwise, allocate a new page (this increases the size of the heap by one page)
-		va = current[hartid]->user_heap.heap_top;
-		current[hartid]->user_heap.heap_top += PGSIZE;
-
-		current[hartid]->mapped_info[HEAP_SEGMENT].npages++;
-	}
-	user_vm_map((pagetable_t)current[hartid]->pagetable, va, PGSIZE, (uint64)pa,
-				prot_to_type(PROT_WRITE | PROT_READ, 1));
-	return va;
+	return better_alloc(n);
 }
 
 //
@@ -97,12 +77,7 @@ uint64 sys_user_allocate_page()
 //
 uint64 sys_user_free_page(uint64 va)
 {
-	uint64 hartid = read_tp();
-
-	user_vm_unmap((pagetable_t)current[hartid]->pagetable, va, PGSIZE, 1);
-	// add the reclaimed page to the free page list
-	current[hartid]->user_heap.free_pages_address[current[hartid]->user_heap.free_pages_count++] = va;
-	return 0;
+	return better_free(va);
 }
 
 //
@@ -446,6 +421,14 @@ ssize_t sys_user_printpa(uint64 va)
 	return 0;
 }
 
+uint64 sys_user_better_malloc(uint64 n) {
+	return better_alloc(n);
+}
+
+uint64 sys_user_better_free(uint64 va) {
+	return better_free(va);
+}
+
 //
 // [a0]: the syscall number; [a1] ... [a7]: arguments to the syscalls.
 // returns the code of success, (e.g., 0 means success, fail for otherwise)
@@ -460,7 +443,7 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
 		return sys_user_exit(a1);
 	// added @lab2_2
 	case SYS_user_allocate_page:
-		return sys_user_allocate_page();
+		return sys_user_allocate_page(a1);
 	case SYS_user_free_page:
 		return sys_user_free_page(a1);
 	case SYS_user_fork:
@@ -516,6 +499,10 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
 		return sys_user_sem_V(a1);
 	case SYS_user_printpa:
 		return sys_user_printpa(a1);
+	case SYS_user_better_malloc:
+		return sys_user_better_malloc(a1);
+	case SYS_user_better_free:
+		return sys_user_better_free(a1);
 	default:
 		panic("Unknown syscall %ld \n", a0);
 	}

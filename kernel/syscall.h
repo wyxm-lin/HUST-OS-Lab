@@ -23,12 +23,12 @@
 #define SYS_user_disk_stat (SYS_user_base + 22)
 #define SYS_user_close (SYS_user_base + 23)
 // added @lab4_2
-#define SYS_user_opendir  (SYS_user_base + 24)
-#define SYS_user_readdir  (SYS_user_base + 25)
-#define SYS_user_mkdir    (SYS_user_base + 26)
+#define SYS_user_opendir (SYS_user_base + 24)
+#define SYS_user_readdir (SYS_user_base + 25)
+#define SYS_user_mkdir (SYS_user_base + 26)
 #define SYS_user_closedir (SYS_user_base + 27)
 // added @lab4_3
-#define SYS_user_link   (SYS_user_base + 28)
+#define SYS_user_link (SYS_user_base + 28)
 #define SYS_user_unlink (SYS_user_base + 29)
 
 // added@ lab4_challenge3
@@ -44,6 +44,8 @@
 #define SYS_user_sem_P (SYS_user_base + 37)
 #define SYS_user_sem_V (SYS_user_base + 38)
 #define SYS_user_printpa (SYS_user_base + 39)
+#define SYS_user_better_malloc (SYS_user_base + 40)
+#define SYS_user_better_free (SYS_user_base + 41)
 
 long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, long a7);
 

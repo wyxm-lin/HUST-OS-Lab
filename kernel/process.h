@@ -29,6 +29,7 @@ typedef struct trapframe_t
 enum proc_status
 {
     FREE,    // unused state
+    PENDING, // between free and ready
     READY,   // ready state
     RUNNING, // currently running
     BLOCKED, // waiting for something
@@ -56,15 +57,9 @@ typedef struct mapped_region
 
 typedef struct process_heap_manager
 {
-    // points to the last free page in our simple heap.
-    uint64 heap_top;
-    // points to the bottom of our simple heap.
-    uint64 heap_bottom;
-
-    // the address of free pages in the heap
-    uint64 free_pages_address[MAX_HEAP_PAGES];
-    // the number of free pages in the heap
-    uint32 free_pages_count;
+    uint64 rib_used;
+    uint64 rib_free;
+    uint64 g_ufree_page;
 } process_heap_manager;
 
 typedef struct {

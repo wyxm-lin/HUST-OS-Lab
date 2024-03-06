@@ -19,6 +19,7 @@
 #include "spike_interface/spike_utils.h"
 #include "spike_interface/atomic.h"
 #include "core.h"
+#include "memory.h"
 
 // Two functions defined in kernel/usertrap.S
 extern char smode_trap_vector[];
@@ -94,16 +95,20 @@ void init_proc_pool()
 // process strcuture. added @lab3_1
 //
 
+spinlock_t AllocProcessLock;
 process *alloc_process()
 {
+	spinlock_lock(&AllocProcessLock);
 	uint64 hartid = read_tp();
 
 	// locate the first usable process structure
 	int i;
 
 	for (i = 0; i < NPROC; i++)
-		if (procs[i].status == FREE)
+		if (procs[i].status == FREE) {
+			procs[i].status = PENDING; // 我真的
 			break;
+		}	
 
 	if (i >= NPROC)
 	{
@@ -154,9 +159,9 @@ process *alloc_process()
 		   hartid, procs[i].trapframe, procs[i].trapframe->regs.sp, procs[i].kstack);
 
 	// initialize the process's heap manager
-	procs[i].user_heap.heap_top = USER_FREE_ADDRESS_START;
-	procs[i].user_heap.heap_bottom = USER_FREE_ADDRESS_START;
-	procs[i].user_heap.free_pages_count = 0;
+	procs[i].user_heap.rib_free = -1;
+	procs[i].user_heap.rib_used = -1;
+	procs[i].user_heap.g_ufree_page = USER_FREE_ADDRESS_START;
 
 	// map user heap in userspace
 	procs[i].mapped_info[HEAP_SEGMENT].va = USER_FREE_ADDRESS_START;
@@ -172,9 +177,11 @@ process *alloc_process()
 	procs[i].parent = NULL;
 	procs[i].waitpid = 0;
 	procs[i].waitsem = -1;
+
 	memset(procs[i].path, 0, sizeof(procs[i].path));
 
 	// return after initialization.
+	spinlock_unlock(&AllocProcessLock);
 	return &procs[i];
 }
 
@@ -225,32 +232,8 @@ int do_fork(process *parent)
 			// convert free_pages_address into a filter to skip reclaimed blocks in the heap
 			// when mapping the heap blocks
 			{
-				int free_block_filter[MAX_HEAP_PAGES];
-				memset(free_block_filter, 0, MAX_HEAP_PAGES);
-				uint64 heap_bottom = parent->user_heap.heap_bottom;
-				for (int i = 0; i < parent->user_heap.free_pages_count; i++)
-				{
-					int index = (parent->user_heap.free_pages_address[i] - heap_bottom) / PGSIZE;
-					free_block_filter[index] = 1;
-				}
-
-				// copy and map the heap blocks
-				for (uint64 heap_block = current[hartid]->user_heap.heap_bottom;
-					 heap_block < current[hartid]->user_heap.heap_top; heap_block += PGSIZE)
-				{
-					if (free_block_filter[(heap_block - heap_bottom) / PGSIZE]) // skip free blocks
-						continue;
-
-					// void *child_pa = alloc_page();
-					// memcpy(child_pa, (void *)lookup_pa(parent->pagetable, heap_block), PGSIZE);
-					// user_vm_map((pagetable_t)child->pagetable, heap_block, PGSIZE, (uint64)child_pa,
-					// 			prot_to_type(PROT_WRITE | PROT_READ, 1));
-					cow_vm_map((pagetable_t)child->pagetable, heap_block, lookup_pa(parent->pagetable, heap_block));
-				}
-
-				child->mapped_info[HEAP_SEGMENT].npages = parent->mapped_info[HEAP_SEGMENT].npages;
-
-				// copy the heap manager from parent to child
+				cow(parent, child);
+				child->mapped_info[HEAP_SEGMENT].npages = parent->mapped_info[HEAP_SEGMENT].npages; // 这个变量不做维护
 				memcpy((void *)&child->user_heap, (void *)&parent->user_heap, sizeof(parent->user_heap));
 			}
 			break;
@@ -265,11 +248,13 @@ int do_fork(process *parent)
 			// segment of parent process.
 			// DO NOT COPY THE PHYSICAL PAGES, JUST MAP THEM.
 			// panic( "You need to implement the code segment mapping of child in lab3_1.\n" );
+			// sprint("hartid = %lld >> enter fork code\n", hartid);
 			for (int j = 0; j < parent->mapped_info[i].npages; j++) {
-				map_pages(child->pagetable, parent->mapped_info[i].va + j * PGSIZE, PGSIZE, 
-						lookup_pa(parent->pagetable, parent->mapped_info[i].va + j * PGSIZE),
-						prot_to_type(PROT_READ | PROT_EXEC, 1));
+				pte_t *pte = page_walk(child->pagetable, parent->mapped_info[i].va + j * PGSIZE, 1);
+				uint64 pa = lookup_pa(parent->pagetable, parent->mapped_info[i].va + j * PGSIZE);
+				*pte = (PA2PTE(pa)) | (prot_to_type(PROT_READ | PROT_EXEC, 1)) | PTE_V;
 			}
+			// sprint("hartid = %lld >> leave fork code\n", hartid);
 			child->mapped_info[child->total_mapped_region].va = parent->mapped_info[i].va;
 			child->mapped_info[child->total_mapped_region].npages = parent->mapped_info[i].npages;
 			child->mapped_info[child->total_mapped_region].seg_type = CODE_SEGMENT;
@@ -280,11 +265,12 @@ int do_fork(process *parent)
 			child->mapped_info[child->total_mapped_region].seg_type = DATA_SEGMENT;
 			child->mapped_info[child->total_mapped_region].va = parent->mapped_info[i].va;
 			child->mapped_info[child->total_mapped_region].npages = parent->mapped_info[i].npages;
-			for (int i = 0; i < child->mapped_info[child->total_mapped_region].npages; i++)
+			for (int j = 0; j < child->mapped_info[i].npages; j ++)
 			{
 				uint64 child_pa = (uint64)alloc_page();
-				memcpy((void *)child_pa, (void *)lookup_pa(parent->pagetable, child->mapped_info[child->total_mapped_region].va + i * PGSIZE), PGSIZE);
-				map_pages(child->pagetable, child->mapped_info[child->total_mapped_region].va + i * PGSIZE, 1, child_pa, prot_to_type(PROT_WRITE | PROT_READ, 1));
+				memcpy((void *)child_pa, (void *)lookup_pa(parent->pagetable, parent->mapped_info[i].va + j * PGSIZE), PGSIZE);
+				pte_t *pte = page_walk(child->pagetable, parent->mapped_info[i].va + j * PGSIZE, 1);
+				*pte = (PA2PTE(child_pa)) | (prot_to_type(PROT_READ | PROT_WRITE, 1)) | PTE_V;
 			}
 			child->total_mapped_region++; // ANNOTATE: 需要加1
 			break;
@@ -330,19 +316,6 @@ static void exec_clean_pagetable(pagetable_t page_dir)
 					for (int k = 0; k < cnt; k++)
 					{
 						pte_t *pte3 = page_low_dir + k;
-						// if (*pte3 & PTE_V) {
-						// 	free_cnt++;
-						// 	uint64 page = PTE2PA(*pte3);
-						// 	free_page((void *)page); // 此处需要修改free_page函数(DoNotUnderstand:没有明白为什么和之前一样会寄)
-						// 	(*pte3) &= ~PTE_V;
-						// }
-						// if (*pte3 & PTE_V & PTE_W) // 此处低级错误
-						// {
-						// 	// free_cnt++;
-						//     uint64 page = PTE2PA(*pte3);
-						//     free_page((void *)page);
-						//     (*pte3) &= ~PTE_V;
-						// }
 						if (*pte3 & PTE_V) // NOTE:通过可写来区分trap_sec_start 这一个虚拟地址
 						{
 							valid_cnt++;
@@ -409,9 +382,9 @@ void exec_clean(process *p)
 	p->mapped_info[SYSTEM_SEGMENT].seg_type = SYSTEM_SEGMENT;
 
 	// initialize the process's heap manager
-	p->user_heap.heap_top = USER_FREE_ADDRESS_START;
-	p->user_heap.heap_bottom = USER_FREE_ADDRESS_START;
-	p->user_heap.free_pages_count = 0;
+	p->user_heap.rib_free = -1;
+	p->user_heap.rib_used = -1;
+	p->user_heap.g_ufree_page = USER_FREE_ADDRESS_START;
 
 	// map user heap in userspace
 	p->mapped_info[HEAP_SEGMENT].va = USER_FREE_ADDRESS_START;

@@ -74,7 +74,7 @@ USER_CPPS5 		:= user/lab3_3.c user/user_lib.c
 
 USER_OBJS5  	:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_CPPS5)))
 
-USER_TARGET5	:= $(HOSTFS_ROOT)/bin/lab3_3
+USER_TARGET5	:= $(HOSTFS_ROOT)/bin/run
 #------------------------targets------------------------
 $(OBJ_DIR):
 	@-mkdir -p $(OBJ_DIR)	
@@ -138,7 +138,7 @@ all: $(KERNEL_TARGET) $(USER_TARGET) $(USER_TARGET5)
 
 run: $(KERNEL_TARGET) $(USER_TARGET) $(USER_TARGET5)
 	@echo "********************HUST PKE********************"
-	spike -p2 $(KERNEL_TARGET) /bin/lab3_3
+	spike -p2 $(KERNEL_TARGET) /bin/run /bin/run
 
 # need openocd!
 gdb:$(KERNEL_TARGET) $(USER_TARGET)

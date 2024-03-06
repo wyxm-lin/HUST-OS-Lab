@@ -11,10 +11,11 @@ enum core_status
     CORE_STATUS_ERROR
 };
 
-typedef struct CoreInfo_t {
+typedef struct CoreInfo_t
+{
     int status;
     uint64 TaskRunCount; // FIXME 暂且以完成的任务数作为负载指标
-}CoreInfo_t;
+} CoreInfo_t;
 
 void core_info_init();
 uint64 choose_core();
@@ -24,4 +25,4 @@ MyStatus is_all_idle();
 void idle_process(uint64 hartid);
 enum core_status get_core_status(uint64 hartid);
 
-#endif 
+#endif

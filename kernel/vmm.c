@@ -26,8 +26,10 @@ int map_pages(pagetable_t page_dir, uint64 va, uint64 size, uint64 pa, int perm)
 	{
 		if ((pte = page_walk(page_dir, first, 1)) == 0)
 			return -1;
-		if (*pte & PTE_V)
+		if (*pte & PTE_V) {
+			sprint("hartid = %lld is error\n", read_tp());
 			panic("map_pages fails on mapping va (0x%lx) to pa (0x%lx)", first, pa);
+		}
 		*pte = PA2PTE(pa) | perm | PTE_V;
 	}
 	return 0;

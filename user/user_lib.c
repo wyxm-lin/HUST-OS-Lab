@@ -54,17 +54,17 @@ int exit(int code)
 	return do_user_call(SYS_user_exit, code, 0, 0, 0, 0, 0, 0);
 }
 
-void printpa(int* va)
+void printpa(void* va)
 {
-  do_user_call(SYS_user_printpa, (uint64)va, 0, 0, 0, 0, 0, 0);
+	do_user_call(SYS_user_printpa, (uint64)va, 0, 0, 0, 0, 0, 0);
 }
 
 //
 // lib call to naive_malloc
 //
-void *naive_malloc()
+void *naive_malloc(int n)
 {
-	return (void *)do_user_call(SYS_user_allocate_page, 0, 0, 0, 0, 0, 0, 0);
+	return (void *)do_user_call(SYS_user_allocate_page, n, 0, 0, 0, 0, 0, 0);
 }
 
 //
@@ -420,4 +420,14 @@ void sem_P(int sem)
 void sem_V(int sem)
 {
 	do_user_call(SYS_user_sem_V, sem, 0, 0, 0, 0, 0, 0);
+}
+
+void *better_malloc(int n)
+{
+	return (void *)do_user_call(SYS_user_better_malloc, n, 0, 0, 0, 0, 0, 0);
+}
+
+void better_free(void *va)
+{
+	do_user_call(SYS_user_better_free, (uint64)va, 0, 0, 0, 0, 0, 0);
 }

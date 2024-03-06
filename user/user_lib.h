@@ -9,8 +9,8 @@
 
 int printu(const char *s, ...);
 int exit(int code);
-void* naive_malloc();
-void naive_free(void* va);
+void *naive_malloc(int n);
+void naive_free(void *va);
 int fork();
 void yield();
 
@@ -34,19 +34,21 @@ int link_u(const char *fn1, const char *fn2);
 int unlink_u(const char *fn);
 
 // added @ lab4_challenge3
-int exec(const char *path, char* arg);
+int exec(const char *path, char *arg);
 int wait(int pid);
-int execPlus(const char* path, char* argv[]);
+int execPlus(const char *path, char *argv[]);
 
 // added @ challengeX
-int pwd_u(char* buf);
-int cd_u(char* path);
-int scanf_u(const char* s, ...);
+int pwd_u(char *buf);
+int cd_u(char *path);
+int scanf_u(const char *s, ...);
 int shell();
-int work(char* commandlist);
+int work(char *commandlist);
 int sem_new(int value);
 void sem_P(int sem);
 void sem_V(int sem);
-void printpa(int* va);
+void printpa(void* va);
+void *better_malloc(int n);
+void better_free(void *va);
 
 #endif

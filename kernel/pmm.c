@@ -73,6 +73,7 @@ void *alloc_page(void)
 	list_node *n = g_free_mem_list.next;
 	if (n)
 		g_free_mem_list.next = n->next;
+	memset(n, 0, PGSIZE);
 	spinlock_unlock(&AllocPageLock);
 	return (void *)n;
 }
