@@ -16,7 +16,7 @@ void insert_to_ready_queue(process *proc)
 {
 	spinlock_lock(&ready_queue_lock);
 	uint64 hartid = read_tp();
-	sprint("hartid = %lld: going to insert process %d to ready queue.\n", hartid, proc->pid);
+	sprint("hartid = %lld >> going to insert process %d to ready queue.\n", hartid, proc->pid);
 
 	if (ready_queue_head == NULL)
 	{
@@ -52,11 +52,12 @@ void insert_to_ready_queue(process *proc)
 // hartid从busy->idle 都在外面
 // hartid从idle->busy 只有可能在这里
 // 为所有处于idle的core分配任务
+// 成功获得锁后，本进程可能会是busy(因为在抢占锁的时候 可能会被别的core设置为busy，尽管每次调用schedule前都设置为idle了)
 void schedule()
 {
 	spinlock_lock(&ready_queue_lock);
 	uint64 hartid = read_tp();
-	// sprint("hartid = %lld: enter the scheduler.\n", hartid);
+	// sprint("hartid = %lld >> enter the scheduler.\n", hartid);
 
 	if (!ready_queue_head)
 	{
@@ -75,40 +76,55 @@ void schedule()
 		}
 		else
 		{
-			sprint("hartid = %lld: ready queue empty, but some cores are still busy.\n", hartid);
-			spinlock_unlock(&ready_queue_lock);
-			// sprint("hartid = %lld: leave the scheduler.\n", hartid);
-			idle_process(hartid);
+			if (get_core_status(hartid) == CORE_STATUS_IDLE)
+			{
+				// sprint("hartid = %lld >> will enter idle.\n", hartid);
+				spinlock_unlock(&ready_queue_lock);
+				// sprint("hartid = %lld >> leave the scheduler.\n", hartid);
+				idle_process(hartid);
+			}
+			else
+			{
+				// sprint("hartid = %lld >> has been busy by other core.\n", hartid);
+				spinlock_unlock(&ready_queue_lock);
+				// sprint("hartid = %lld >> leave the scheduler.\n", hartid);
+				switch_to(current[hartid]);
+			}
 		}
 		return; // never
 	}
 
 	while (TRUE)
 	{
-		uint64 choice = choose_core();
-		if (choice == -1)
+		uint64 choice = choose_core(); // 选中的核一定是idle的核心，所以current无须上锁
+		if (choice == -1) {
+			asm volatile("ecall");
 			break;
+		}
 		current[choice] = ready_queue_head;
 		assert((current[choice]->status == READY));
 		current[choice]->status = RUNNING;
 		current[choice]->trapframe->regs.tp = choice;
 		set_busy(choice);
-		sprint("hartid = %lld: going to schedule process %d to run.\n", choice, current[choice]->pid);
+		sprint("hartid = %lld >> hartid = %lld going to schedule process %d to run.\n", hartid, choice, current[choice]->pid);
 		ready_queue_head = ready_queue_head->queue_next;
-		if (ready_queue_head == NULL)
+		if (ready_queue_head == NULL) {
+			asm volatile("ecall");
 			break;
+		}
 	}
 
 	if (get_core_status(hartid) == CORE_STATUS_IDLE)
 	{
+		//sprint("hartid = %lld >> will enter idle.\n", hartid);
 		spinlock_unlock(&ready_queue_lock);
-		// sprint("hartid = %lld: leave the scheduler.\n", hartid);
+		//sprint("hartid = %lld >> leave the scheduler.\n", hartid);
 		idle_process(hartid);
 	}
 	else
 	{
 		spinlock_unlock(&ready_queue_lock);
-		// sprint("hartid = %lld: leave the scheduler.\n", hartid);
+		//sprint("hartid = %lld >> leave the scheduler.\n", hartid);
 		switch_to(current[hartid]);
 	}
 }

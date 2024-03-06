@@ -41,7 +41,7 @@ ssize_t sys_user_exit(uint64 code)
 {
 	uint64 hartid = read_tp();
 
-	sprint("hartid = %lld: User(pid = %d) exit with code:%d.\n", hartid, current[hartid]->pid, code);
+	sprint("hartid = %lld >> User(pid = %d) exit with code:%d.\n", hartid, current[hartid]->pid, code);
 	// reclaim the current process, and reschedule. added @lab3_1
 
 	if (current[hartid]->parent != NULL && current[hartid]->parent->status == BLOCKED)
@@ -110,7 +110,7 @@ ssize_t sys_user_fork()
 {
 	uint64 hartid = read_tp();
 
-	sprint("hartid = %lld: User(pid = %d) call fork.\n", hartid, current[hartid]->pid);
+	sprint("hartid = %lld >> User(pid = %d) call fork.\n", hartid, current[hartid]->pid);
 	return do_fork(current[hartid]);
 }
 
@@ -421,6 +421,24 @@ ssize_t sys_user_shell()
 	return 0;
 }
 
+int sys_user_sem_new(int value)
+{
+	return 0;
+	// return sem_new(value);
+}
+
+ssize_t sys_user_sem_P(int sem)
+{
+	return 0;
+	// return sem_P(sem);
+}
+
+ssize_t sys_user_sem_V(int sem)
+{
+	return 0;
+	// return sem_V(sem);
+}
+
 //
 // [a0]: the syscall number; [a1] ... [a7]: arguments to the syscalls.
 // returns the code of success, (e.g., 0 means success, fail for otherwise)
@@ -483,6 +501,12 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
 		return sys_user_scanf((char *)a1);
 	case SYS_user_shell:
 		return sys_user_shell();
+	case SYS_user_sem_new:
+		return sys_user_sem_new(a1);
+	case SYS_user_sem_P:
+		return sys_user_sem_P(a1);
+	case SYS_user_sem_V:
+		return sys_user_sem_V(a1);
 	default:
 		panic("Unknown syscall %ld \n", a0);
 	}

@@ -45,7 +45,7 @@ static uint64 g_ticks[NCPU] = { 0 };
 void handle_mtimer_trap()
 {
 	uint64 hartid = read_tp();
-	sprint("hartid = %lld: Ticks %d\n", hartid, g_ticks[hartid]);
+	sprint("hartid = %lld >> Ticks %d\n", hartid, g_ticks[hartid]);
 	// TODO (lab1_3): increase g_ticks to record this "tick", and then clear the "SIP"
 	// field in sip register.
 	// hint: use write_csr to disable the SIP_SSIP bit in sip.
@@ -63,7 +63,7 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval)
 {
 	uint64 hartid = read_tp();
 
-	sprint("hartid = %lld: handle_page_fault: %lx\n", hartid, stval);
+	sprint("hartid = %lld >> handle_page_fault: %lx\n", hartid, stval);
 	switch (mcause)
 	{
 	case CAUSE_STORE_PAGE_FAULT:
@@ -117,7 +117,7 @@ void rrsched()
 void smode_trap_handler(void)
 {
 	uint64 hartid = read_tp();
-	// sprint("hartid = %lld: smode_trap_handler() is called.\n", hartid);
+	// sprint("hartid = %lld >> smode_trap_handler() is called.\n", hartid);
 
 	// make sure we are in User mode before entering the trap handling.
 	// we will consider other previous case in lab1_3 (interrupt).
@@ -131,7 +131,7 @@ void smode_trap_handler(void)
 	// if the cause of trap is syscall from user application.
 	// read_csr() and CAUSE_USER_ECALL are macros defined in kernel/riscv.h
 	uint64 cause = read_csr(scause);
-	// sprint("hartid = %lld: scause=%p sepc=%p stval=%p\n", hartid, cause, read_csr(sepc), read_csr(stval));
+	// sprint("hartid = %lld >> scause=%p sepc=%p stval=%p\n", hartid, cause, read_csr(sepc), read_csr(stval));
 	// use switch-case instead of if-else, as there are many cases since lab2_3.
 	switch (cause)
 	{
@@ -150,8 +150,8 @@ void smode_trap_handler(void)
 		handle_user_page_fault(cause, read_csr(sepc), read_csr(stval));
 		break;
 	default:
-		sprint("hartid = %lld: smode_trap_handler(): unexpected scause %p\n", hartid, read_csr(scause));
-		sprint("hartid = %lld:             sepc=%p stval=%p\n", hartid, read_csr(sepc), read_csr(stval));
+		sprint("hartid = %lld >> smode_trap_handler(): unexpected scause %p\n", hartid, read_csr(scause));
+		sprint("hartid = %lld >>             sepc=%p stval=%p\n", hartid, read_csr(sepc), read_csr(stval));
 		panic("unexpected exception happened.\n");
 		break;
 	}

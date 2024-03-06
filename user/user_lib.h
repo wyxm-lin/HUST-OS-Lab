@@ -44,5 +44,8 @@ int cd_u(char* path);
 int scanf_u(const char* s, ...);
 int shell();
 int work(char* commandlist);
+int sem_new(int value);
+void sem_P(int sem);
+void sem_V(int sem);
 
 #endif

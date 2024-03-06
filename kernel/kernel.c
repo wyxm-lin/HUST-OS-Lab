@@ -89,7 +89,7 @@ process *load_user_program()
 
 	proc = alloc_process();
 
-    sprint("hartid = %lld: User application is loading.\n", hartid);
+    sprint("hartid = %lld >> User application is loading.\n", hartid);
 
 	// retrieve command line arguements
 	if (HasParsed == No) {
@@ -116,7 +116,7 @@ int s_start(void)
 {
 	uint64 hartid = read_tp();
 
-    sprint("hartid = %lld: Enter supervisor mode...\n", hartid);
+    sprint("hartid = %lld >> Enter supervisor mode...\n", hartid);
 	// in the beginning, we use Bare mode (direct) memory mapping as in lab1.
 	// but now, we are going to switch to the paging mode @lab2_1.
 	// note, the code still works in Bare mode when calling pmm_init() and kern_vm_init().
@@ -143,7 +143,7 @@ int s_start(void)
         fs_init();
     }
 
-    sprint("hartid = %lld: Switch to user mode...\n", hartid);
+    sprint("hartid = %lld >> Switch to user mode...\n", hartid);
 	// the application code (elf) is first loaded into memory, and then put into execution
 	// added @lab3_1
     process* app = load_user_program();

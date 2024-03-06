@@ -20,6 +20,7 @@ uint64 choose_core() {
     uint64 MIN = 0x7fffffffffffffff;
     uint64 MIN_CORE = -1;
     for (int i = 0; i < NCPU; i++) {
+        // sprint("the count is  %d %lld\n", i, CoreInfo[i].TaskRunCount);
         if ( CoreInfo[i].status == CORE_STATUS_IDLE && CoreInfo[i].TaskRunCount < MIN) {
             MIN = CoreInfo[i].TaskRunCount;
             MIN_CORE = i;
@@ -31,6 +32,7 @@ uint64 choose_core() {
     }
     CoreInfo[MIN_CORE].TaskRunCount++;
     spinlock_unlock(&core_info_lock);
+    // sprint("the min_core is %lld\n", MIN_CORE);
     return MIN_CORE;
 }
 
@@ -70,6 +72,7 @@ void idle_process(uint64 hartid) {
     while (1) {
         asm volatile("wfi");
         if (get_core_status(hartid) == CORE_STATUS_BUSY) {
+            // sprint("                                        raise\n");
             break;
         }
     }

@@ -401,3 +401,18 @@ void ECHO(char *command, int *idx)
 	}
 	printu("\n");
 }
+
+int sem_new(int value)
+{
+	return do_user_call(SYS_user_sem_new, value, 0, 0, 0, 0, 0, 0);
+}
+
+void sem_P(int sem)
+{
+	do_user_call(SYS_user_sem_P, sem, 0, 0, 0, 0, 0, 0);
+}
+
+void sem_V(int sem)
+{
+	do_user_call(SYS_user_sem_V, sem, 0, 0, 0, 0, 0, 0);
+}

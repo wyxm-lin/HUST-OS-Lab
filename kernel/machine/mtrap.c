@@ -34,8 +34,9 @@ static void handle_timer()
 void handle_mtrap()
 {
 	uint64 hartid = read_tp();
-	// sprint("hartid = %lld: handle_mtrap() is called.\n", hartid);
+	// sprint("hartid = %lld >> handle_mtrap() is called.\n", hartid);
 	uint64 mcause = read_csr(mcause);
+	
 	switch (mcause)
 	{
 	case CAUSE_MTIMER:
@@ -61,7 +62,11 @@ void handle_mtrap()
 	case CAUSE_MISALIGNED_STORE:
 		handle_misaligned_store();
 		break;
-
+	case CAUSE_SUPERVISOR_ECALL:
+		// sprint("super ecall from kernel.\n");
+		write_csr(mepc, read_csr(mepc) + 4); // 真的要谢 原来要这样
+		asm volatile("mret");
+		break;
 	default:
 		sprint("machine trap(): unexpected mscause %p\n", mcause);
 		sprint("            mepc=%p mtval=%p\n", read_csr(mepc), read_csr(mtval));
